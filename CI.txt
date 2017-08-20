@@ -1,0 +1,49 @@
+CI Keeps the master branch clean
+You should be able to get a new machine, checkout project, issue a single command, and be able to fully build the system.
+Imperfect tests, run frequently, are better than perfect tests that are never written at all.
+Every developer should commit to the repository every day.
+
+
+# Unit Tests 
+Responsible for testing individual elements of code in an isolated and highly targeted way.
+The functionality of individual functions and classes are tested on their own.
+Any external dependencies are replaced with stub or mock implementations to focus the test completely on code in question.
+Essential to test the correctness of individual code components for internal consistency and correctness before theyare placed in more complex context.
+Unit tests are typically run by individual developers on their own workstation prior to submitting chances, however
+CI servers almost always run these tests again as a safe guard before beginning integration tests.
+
+# Integration Testing
+Integration tests ensure that components cooperate when interfacing with one another. Performed automatically when code is checked into a shared repository. A CI server checks out the code, performs any necessary build steps and then runs unit and
+integration tests. Firsts tests off developers machine, first time new code is tested against real external libraries,
+services, and data.
+
+# Systems Testing
+Instead of focusing on the interfaces between components, system tests typically evaluate the outward functionality of full
+piece of stofware
+
+
+# Maintain a Single Source Repository
+Source control should have everything you need to build, but nothing that you actually build.
+
+# Automate the Build
+Unix world has had make for decades.
+Build should include getting database schema out of repository and firing it up in the execution environment.
+
+# Every commit should build Master on Integration Machine
+Ensure regular buids happen on an integration machine and only if this integration build succeeds should the commit
+be considered to be done.
+
+# Fix Broken Builds Immediately
+Key part of doing a continuous build is that if the mainline build fails, it needs to be fixed right away. Often
+the fastest way to fix the build is to revert the latest commit from the mainline, taking the system back to the
+last-know good build.
+
+# Keep the Build Fast
+The whole point of CI is to provide rapid feedback.
+Commit to the mainline triggers the first build.
+Two stage? First stage are more localized unit tests with database completely stubbed out. Second stage run
+a different suite of tests that do hit the real databse and involve more end-to-end behavior.
+
+# Test in a Clone of the Production Environment
+You want to setup your test environment to be as exact a mimic of your production environment as possible.
+Use same database software, same version, same verison of OS. Use same IP addresses and ports on same hardware.

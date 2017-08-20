@@ -1,0 +1,166 @@
+## Git ##
+Git's version control model is based on snapshots.
+Git is all about commits: you stage commits, create commits, view old commits, etc. You can use
+git checkout to view an old commitby passing in a commit hash. Understanding the many ways to refer to a
+commit, you make all of these commands that much more powerful. The reflog is Git's safety net, records almost
+every change you make in repository, regardless of whether you commited a snapshot or not.
+Git stores branches as a reference to a commit.
+
+
+## Basics ##
+git config --list
+git clone // Every version of every file for the history of the project is pulled down by default
+.gitignore // you can end patterns with forward slash (/) to specifiy a directory e.g. build/
+.gitignore // !lib.a negates a patter if you only want that file and ignore all other .a files
+git add *
+git remove
+git log // displays committed snampshots
+git log -n <limit> --oneline
+git log --stat
+git log -p -2 (last 2) --stat --pretty=oneline
+git log --graph --decorate --oneline
+git log --author="John Smith" -p hello.py
+author is person who originally wrote the work, committer is person who last applied the work
+
+git commit -m 'inital commit'
+git add forgotten_file
+git commit --amend // You end up with a single commit
+
+git reset HEAD <file> if you commit files you don't want to commit
+git checkout -- <file> to discard changes in working directory
+git checkout a1e8fb5 hello.py // checkout old version of file
+git checkout HEAD hello.py // checkout the most recent version
+
+git remote -v
+git fetch [remote-name] // git fetch origin
+git fetch // only downloads the data 
+git pull // automatically fetch and them merge that remote branch into current branch
+git pull --rebase // ensure a linear history by preventing unncecassary merge commits.
+"I want to put my changes on top of what everybody else has done." Common workflow with --global option
+git push [remote-name] [branch-name] // git push origin master
+git push <remote> --tags // Tags are not automatically pushed 
+
+git checkout -b [branch-name] // create and switch to new branch
+git checkout master
+git merge [branch-name] // checkout out the branch you wish to merge into and run git merge command
+git branch -d [branch-name] // delete the branch, only if merged, use -D if not fully merged
+git branch --no-merged // list branchs you have yet to merge
+Git add standard conflict-resolution markers to files that have conflicts
+After resolving conflicted files, run git add on each file to mark it as resolved. Staging marks it as resolved
+
+
+## Reverting vs. Resetting ##
+Revert generates a new commit that undoes all the changes introduced in <commit>, then apply it to current branch while
+reset, the commits are no longer referenced by any ref or reflog. git reset is one of the only commands that has
+the potential to lose your work. Only use reset on local changes.
+
+git reset <file> // remmove <file> from staging area, but leave working directory unchanged
+git reset --hard HEAD / if you want to throw away all your uncommitted changes
+git reset HEAD`2 // On the commit-level, resetting a way to move the tip of a branch to a different commit
+this moves back 2 commits and those will be deleted next time Git performs a garbage collection. Usage of
+git reset is a simple way to undo changes that haven't been shared with anyone else. It's your go-to command
+to start over locally.
+
+git revert HEAD`2 // undoes a commit by creating a new commit, safe way to undo changes, no chance of re-writing the
+commit history
+
+git gc // garbage collection to remove unnecessary objets and compress refs into a single file for more
+efficient performances
+
+git push origin master:refs/heads/qa-master // useful for QA teams that need to push their own branches to remote repo
+git push origin --delete some-feature // use refspecs for deleting remote branches, you get build-up of dead feature
+branchs as your project progress
+
+
+## git rebase ##
+Rebase is one of two Git utilites that specializes integrating changes from one branch onto another. The other change
+integration utility is git merge. Rebase is the process of moving or combining a sequence of commits to a new base
+commit.
+
+The primary reason for rebase is to maintain a linear project history. For example, consider a situation where
+the master branch has progressed since you started working on a feature branch. You want to get the latest updates
+to the master branch in your feature branch, but you want to keep your branch's history clean so it appears as
+if you've been working off the latest master branch.
+
+Merge directly or rebasing and then merge. The former option results in a 3-way merge and a merge commit, while
+the latter results in a fast-forward merge and a perfectly linear history.
+
+Rebasing is a common way to integrate upstream changes into your local repository. "I want to base my changes on what
+everybody has already done." git rebase --interactive gives your the opportunity to alter individual commits in the
+process. Like git commit --amend on steroids.
+
+Most developers like to use an interactive rebase to polish a feature branch before merging it into the main code
+base. This gives them the opportunity to squash insignificant commits, delete obsolete ones, and make sure everything
+else is in order before commit to the "offiical" project history. To everybody else, it will look like the entire
+feature was developed in a single series of well-planned commits. It shows in the history of the resulting
+master branch.
+
+If you have a long-lived branch that has strayed from master, and you want to rebase against master, merge
+conflicts may become more frequent. This is easily remedied by rebasing your branch frequently against master
+and making more frequent commits. The --continue and --abort arguments can be passed to advance or reset
+the rebase when dealing with conflicts.
+
+
+## Hooks ##
+Git hooks // thinkg of a convenient developer tool rather than a strictly enforced development policy but you can
+reject commits that do not conform to some standard using server-side hooks.
+
+Pre-Commit // perhaps run automated tests that make sure commit doesn't break any existing functionality. PEP8?
+No arguments are passed to the pre-commit script, exiting with a non-zero status aborts the entire commit.
+
+Post-Commit // can't change outcoem of git commit operations, so it's used primarrily for notification purposes.
+If you wanted to log or emal everytime commit happens, this would be the place.
+
+Post-Receive // runs on server instead os user's local machine, it also runs every time any developer pushes their code
+
+Post-Checkout // Nice for clearing out working directory with .pyc files that stick around
+
+Server-side Hooks // can serve as a way to enfore policy bt rejecting certain commits. The output are piped to the
+client's console, so it's very easy to send messages back to the developer. Keep in mind these scripts don't return
+control of the terminal until they finish executing, so you should be careful about performing long-running operations
+
+Pre-Receive // executed everytime somebody uses git push. The hook runs before any reference are updated.
+good place to enfore any kind of development policy that you want. 
+
+Post-Recieve // good place to perform notifications.
+
+All Git hooks are ordinary scripts that Git executes when certain events occur in the repository. Hooks are local and are not copied when you run git clone. Hooks reside in the.git/hooks directory of every Git repository.
+Git automatically populates this directory with example scritps but.sample prevents them from executing by default.
+You can use any scripting language as long as it can be run as an executable.
+
+Best way to maintain hooks is to store them in actual project directory and create symlink to .git/hooks because
+that directory isn't cloned, nore under version control. Git also provides a Template Directory mechanism that makes
+it easier to install hooks automatically. The Template Directory gets cloned.
+
+
+## Refs and the Reflog ##
+Understand that may ways to refer to a commit, which Git is all about: commits. The most direct way to reference
+a commit is via its SHA-1 hash. This acts as unique ID for each commit. You can find the hash of all your commits
+in the git log output.
+
+A ref is an indirect way of referring to a commit. This is Git's internal mechanism of representing branches and tags.
+Refs are stored as normal text files in .git/refs directory.
+
+Heads directory defines all of the local branches in your repository. Each filename matches the name of the
+corresponding branch, and inside the file you'll find a commit hash. Part of the reason why git branches are so
+lightweight compared to SVN is simply matter of writing a commit hash to a new file
+
+There are a few special refs that reside inthe top-level .git [HEAD, FETCH_HEAD, ORIG_HEAD, MERGE_HEAD, CHERRY_PICK_HEAD]
+
+A refspec maps a branch in a the local repository to a branch in a remote repository. This makes it possible to manage
+remote branches using local Git commands and to configure some advanced git push and git fetch behavior
+
+By adding a few lines to Git configuration file, you can use refspecs to alter the behavior of git fetch, by default
+fetches all of the branches in the remote repository. For example, many continuous integration workflows only
+care about the master branch, to fetch only the master branch, Refspecs give you complete control over how various
+Git commands transfer branches between repositories.
+
+You can also refer to commits relative to another commit. The ~ character lets you reach parent commits.
+git show HEAD~2 // ~ always follows first parent of merge commit. use ^ if you want to follow different parent
+
+The REFLOG is Git's safety net. It records almost everything, regardless of whether you commited a snapshot or not.
+
+The HEAD{<n>} lets you reference commits stored in the reflog. You can use this to revert to a state taht would
+otherwise be lose. If commits are dangling, meaning no way to ference them - except through the reflog. If you
+reset work but relalize that you shouldn't have thrown away all of your work, all you have to do is checkout
+the HEAD@{1} commit to get back to the state of your repository before you ran git reset.
