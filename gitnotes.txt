@@ -1,9 +1,108 @@
+# 10.1 Git Internals - Plumbing and Porcelain [Objects, Tree, Commit]
+Git is fundamentally a content-addressable filesystem with a VCS user interface written on top of it.
+All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree.
+Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.
+
+You mostly use Git with 30 or so subcommands such as checkout, branch, remote, and so on.
+But because Git was initially a toolkit for a version control system rather than a full user-friendly VCS,
+it has a number of subcommands that do low-level work and were designed to be chained together UNIX-style or called from scripts.
+These commands are generally referred to as Git’s “plumbing” commands, while the more user-friendly commands are called “porcelain” commands.
+
+When you run git init in a new or existing directory, Git creates the .git directory, which is where almost everything that Git stores and manipulates is located.
+If you want to back up or clone your repository, copying this single directory elsewhere gives you nearly everything you need
+
+## Four Important parts in .git directory
+the HEAD
+index files (yet to be created)
+objects and refs directories.
+
+These are the core parts of Git.
+the objects directory stores all the content for your database,
+the refs directory stores pointers into commit objects in that data (branches, tags, remotes and more),
+the HEAD file points to the branch you currently have checked out,
+and the index file is where Git stores your staging area information. You’ll now look at each of these sections in detail to see how Git operates.
+
+$ ls -F1
+config		## project specific configuration
+description	## only used by GitWeb
+HEAD
+hooks/
+info/		## keep a global exclude pattern for ignored patterns in .gitignore
+objects/
+refs/
+
+
+## Git Objects  $ find .git/objects
+Git is a content-addressable filesystem. Great. What does that mean?
+It means that at the core of Git is a simple key-value data store.
+You can insert any kind of content into a Git repository, for which Git will hand you back a unique key you can use later to retrieve that content.
+
+$ git init
+Git has initialized the objects directory and created pack and info subdirectories in it, but there are no regular files.
+Now, use git hash-object to create a new data object and manually store it in your new Git database
+
+$ echo 'test content' | git hash-object -w --stdin
+d670460b4b4aece5915caf5c68d12f560a9fe3e
+In its simplest form, git hash-object would take the content you handed to it and merely return the unique key that would be used to store it in your Git database.
+The -w option then tells the command to not simply return the key, but to write that object to the database.
+Finally, the --stdin option tells git hash-object to get the content to be processed from stdin;
+otherwise, the command would expect a filename argument at the end of the command containing the content to be used.
+
+The output from the above command is a 40-character checksum hash.
+This is the SHA-1 hash — a checksum of the content you’re storing plus a header, which you’ll learn about in a bit.
+Now you can see how Git has stored your data:
+
+$ find .git/objects -type f
+.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+If you again examine your objects directory, you can see that it now contains a file for that new content.
+This is how Git stores the content initially — as a single file per piece of content, named with the SHA-1 checksum of the content and its header.
+The subdirectory is named with the first 2 characters of the SHA-1, and the filename is the remaining 38 characters.
+
+$ git cat-file
+Once you have content in your object database, you can examine that content with the git cat-file command.
+This command is sort of a Swiss army knife for inspecting Git objects.
+Passing -p to cat-file instructs the command to first figure out the type of content, then display it appropriately:
+
+$ echo 'version 1' > test.txt
+$ git hash-object -w test.txt
+83baae61804e65cc73a7201a7252750c76066a30
+
+#### Blob
+But remembering the SHA-1 key for each version of your file isn’t practical;
+plus, you aren’t storing the filename in your system — just the content.
+This object type is called a blob. You can have Git tell you the object type of any object in Git, given its SHA-1 key, with git cat-file -t:
+
+## Tree Objects
+Tree objects solve the problem of storing the filename and allows you to store a group of files together.
+All the content is stored as tree and blob objects.
+With trees corresponding to UNIX directory entries and blobs corresponding more or less to inodes or file contents.
+A single tree object contains one or more tree entries, each of which contains a SHA-1 pointer to a blob or subtree with its associated mode, type, and filename.
+For example, the most recent tree in a project may look something like this:
+$ git cat-file -p master^{tree}
+$ git write-tree
+
+## Commit Objects
+All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree.
+Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.
+
+## Git References [HEAD, tags, remotes]
+If you were interested in seeing the history of your repository reachable from commit, say, 1a410e, you could run something like git log 1a410e to display that history,
+but you would still have to remember that 1a410e is the commit you want to use as the starting point for that history.
+Instead, it would be easier if you had a file in which you could store that SHA-1 value under a simple name so you could use that simple name rather than the raw SHA-1 value.
+
+In Git, these simple names are called “references” or “refs”;
+you can find the files that contain those SHA-1 values in the .git/refs directory.
+
+
+
+
+# PART2
 ## Git ##
 Git's version control model is based on snapshots.
-Git is all about commits: you stage commits, create commits, view old commits, etc. You can use
-git checkout to view an old commitby passing in a commit hash. Understanding the many ways to refer to a
-commit, you make all of these commands that much more powerful. The reflog is Git's safety net, records almost
-every change you make in repository, regardless of whether you commited a snapshot or not.
+Git is all about commits: you stage commits, create commits, view old commits, etc.
+You can use git checkout to view an old commitby passing in a commit hash.
+Understanding the many ways to refer to a commit, you make all of these commands that much more powerful.
+The reflog is Git's safety net, records almost every change you make in repository, regardless of whether you commited a snapshot or not.
 Git stores branches as a reference to a commit.
 
 
@@ -33,12 +132,12 @@ git checkout HEAD hello.py // checkout the most recent version
 
 git remote -v
 git fetch [remote-name] // git fetch origin
-git fetch // only downloads the data 
+git fetch // only downloads the data
 git pull // automatically fetch and them merge that remote branch into current branch
 git pull --rebase // ensure a linear history by preventing unncecassary merge commits.
 "I want to put my changes on top of what everybody else has done." Common workflow with --global option
 git push [remote-name] [branch-name] // git push origin master
-git push <remote> --tags // Tags are not automatically pushed 
+git push <remote> --tags // Tags are not automatically pushed
 
 git checkout -b [branch-name] // create and switch to new branch
 git checkout master
@@ -51,8 +150,9 @@ After resolving conflicted files, run git add on each file to mark it as resolve
 
 ## Reverting vs. Resetting ##
 Revert generates a new commit that undoes all the changes introduced in <commit>, then apply it to current branch while
-reset, the commits are no longer referenced by any ref or reflog. git reset is one of the only commands that has
-the potential to lose your work. Only use reset on local changes.
+reset, the commits are no longer referenced by any ref or reflog.
+git reset is one of the only commands that has the potential to lose your work.
+Only use reset on local changes.
 
 git reset <file> // remmove <file> from staging area, but leave working directory unchanged
 git reset --hard HEAD / if you want to throw away all your uncommitted changes
@@ -77,10 +177,10 @@ Rebase is one of two Git utilites that specializes integrating changes from one 
 integration utility is git merge. Rebase is the process of moving or combining a sequence of commits to a new base
 commit.
 
-The primary reason for rebase is to maintain a linear project history. For example, consider a situation where
-the master branch has progressed since you started working on a feature branch. You want to get the latest updates
-to the master branch in your feature branch, but you want to keep your branch's history clean so it appears as
-if you've been working off the latest master branch.
+The primary reason for rebase is to maintain a linear project history.
+For example, consider a situation where the master branch has progressed since you started working on a feature branch.
+You want to get the latest updates to the master branch in your feature branch,
+but you want to keep your branch's history clean so it appears as if you've been working off the latest master branch.
 
 Merge directly or rebasing and then merge. The former option results in a 3-way merge and a merge commit, while
 the latter results in a fast-forward merge and a perfectly linear history.
@@ -120,11 +220,12 @@ client's console, so it's very easy to send messages back to the developer. Keep
 control of the terminal until they finish executing, so you should be careful about performing long-running operations
 
 Pre-Receive // executed everytime somebody uses git push. The hook runs before any reference are updated.
-good place to enfore any kind of development policy that you want. 
+good place to enfore any kind of development policy that you want.
 
 Post-Recieve // good place to perform notifications.
 
-All Git hooks are ordinary scripts that Git executes when certain events occur in the repository. Hooks are local and are not copied when you run git clone. Hooks reside in the.git/hooks directory of every Git repository.
+All Git hooks are ordinary scripts that Git executes when certain events occur in the repository.
+Hooks are local and are not copied when you run git clone. Hooks reside in the.git/hooks directory of every Git repository.
 Git automatically populates this directory with example scritps but.sample prevents them from executing by default.
 You can use any scripting language as long as it can be run as an executable.
 
