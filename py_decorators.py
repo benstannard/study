@@ -2,7 +2,7 @@
 
 
 from functools import wraps
-# You can use functools.wraps in your own decorators to copy over the lost metadata from the undecorated function to the decorator closure. 
+# You can use functools.wraps in your own decorators to copy over the lost metadata from the undecorated function to the decorator closure.
 # Applying functools.wraps to the wrapper closure returned by the decorator carries over the docstring and other metadata of the input function
 # As a best practice I’d recommend that you use functools.wraps in all of the decorators you write yourself.
 
@@ -12,8 +12,8 @@ from functools import wraps
 They "wrap/decorate" another function and let you execute code before after the wraped function runs.
 Decorators can be used to inject additional functionality to one or more functions.
 
-Decorators allow you to define reusable building blocks that can change or extend the behavior of other functions. 
-And they let you do that without permanently modifying the wrapped function itself. 
+Decorators allow you to define reusable building blocks that can change or extend the behavior of other functions.
+And they let you do that without permanently modifying the wrapped function itself.
 The function’s behavior changes only when it’s decorated.
 
 When you use a decorator, really what you’re doing is replacing one function with another.
@@ -22,7 +22,7 @@ One downside of this process is that it “hides” some of the metadata attache
 For example, the original function name, its docstring, and parameter list are hidden by the wrapper closure.
 You can use functools.wraps in your own decorators to copy over the lost metadata from the undecorated function to the decorator closure.
 
-Multiple decorators on a single function are applied bottom to top (decorator stacking). The top decorator decorates the function that results from the decorators below it. 
+Multiple decorators on a single function are applied bottom to top (decorator stacking). The top decorator decorates the function that results from the decorators below it.
 """
 
 
@@ -39,10 +39,10 @@ def uppercase(func):
     return wrapper
 
 """
-Instead of simply returning the input function, this uppercase decorator defines a new function on the fly (a closure) and 
+Instead of simply returning the input function, this uppercase decorator defines a new function on the fly (a closure) and
 uses it to wrap the input function in order to modify its behavior at call time.
 
-The wrapper closure has access to the undecorated input function and it is free to execute additional code before and after calling the input function. 
+The wrapper closure has access to the undecorated input function and it is free to execute additional code before and after calling the input function.
 (Technically, it doesn’t even need to call the input function at all.)
 
 @uppercase
@@ -56,7 +56,7 @@ def greet():
 # Tack on
 """
 uppercase defines and returns another function (the closure) that can then be called at a later time, run the original input function, and modify its result.
-Decorators modify the behavior of a callable through a wrapper so you don’t have to permanently modify the original. 
+Decorators modify the behavior of a callable through a wrapper so you don’t have to permanently modify the original.
 The callable isn’t permanently modified—its behavior changes only when decorated.
 
 This let’s you “tack on” reusable building blocks, like logging and other instrumentation, to existing functions and classes. 
@@ -97,8 +97,8 @@ If you try to apply one of these decorators to a function that takes arguments i
 
 # How do you decorate a function that takes arbitrary arguments?
 """
-*args and **kwargs 
-feature for dealing with variable numbers of arguments comes in handy. 
+*args and **kwargs
+feature for dealing with variable numbers of arguments comes in handy.
 The following proxy decorator takes advantage of that."""
 
 def proxy(func):
