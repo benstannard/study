@@ -1,0 +1,31 @@
+What is a blank identifier?
+     _ (underscore) used to discard unwanted index in looping
+
+When are short variable declarations able to be used?
+     only inside a function
+     name := "Benjamin"
+
+How do you declare variables? Use one of the first 2.
+     s := ""
+     var s string
+     var s = ""
+     var s string = ""
+
+What does the range func do?
+     In each iteration of the loop, range produces a pair of values: the index and the value of the element at that index.
+     In this example, we don’t need the index, but the syntax of a range loop requires that if we deal with the element, we must deal with the index too.
+     One idea would be to assign the index to an obviously temporary variable like temp and ignore its value, but Go does not permit unused local variables, so this would result in a compilation error.
+
+What is the built in err type?
+     nil. If err equals the special built-in value nil, the file was opened successfully.
+
+What library/methods should you use for reading and writing files?
+     bufio.Scanner, ioutil.ReadFile, ioutil.WriteFile
+
+What is a struct?
+     A group of values called fields, often different types, collected together in a
+     single object that can be treated as a unit.
+
+Concurrency?
+	The program will take no longer than the longest fetch/computation rather than
+	the sum of all fetch/computation times
