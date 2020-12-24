@@ -1,0 +1,28 @@
+24 Dec 2020 - Merry Xmas
+[[https://everyday.codes/linux/services-in-systemd-in-depth-tutorial/][source]]
+
+
+A service is essentially a process, running in the background and managed/provisied by systemd.
+*Services* include various serves (HTTP, SSH, FTP), synchronization untilities (rsync), Docker...
+
+systemctl - listing all available services. Lists device, mount points, namespaces, and services
+
+
+
+** What exactly is systemd?
+   systemd is a suite of computer programs aimed to manage and interconnect different parts of system together. 
+   It is designed as a replacement for SystemV and LSB-style startup scrips, which were prevalent since 1980s. systemd consists of these components:
+   *systemd* which is the system and service manager
+   systemctl, a command line tool to interact with systemd
+   journald, a unified logging framework
+   logind, a daemon that handles user logins and seats
+   resolved, timesyncd, and networkd, which are responsible for network connection, domain name resolution and synchronizing time with internet resources
+
+** What is a service?
+   A service is essentially a process, running in the background and managed/provisied by systemd.
+   *Services* include various serves (HTTP, SSH, FTP), synchronization untilities (rsync), Docker..
+
+** Creating your own service
+   Thankfully we can create our own services.
+   You need to create a *unit* file in:
+   /etc/systemd/system/runme.service
