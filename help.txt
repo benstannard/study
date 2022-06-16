@@ -1,3 +1,84 @@
 https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04
 I used this method to create database, and user when running into password errors trying to update databse using
 poetry run python fd.py update
+# study.txt
+
+PSYCOPG2 Library
+https://bbengfort.github.io/2017/12/psycopg2-transactions/
+Understanding transactions is essential to writing stable scripts.
+Transaction are therefore connection specific. When you create a connection, you can create multiple cursors.
+"https://www.psycopg.org/articles/2010/10/22/passing-connections-functions-using-decorator/"
+
+PANDAS
+The plot method on Series and DF is just a simple wrapper around plt.plot()
+
+BASH
+0   STDIN   Standard Input
+1   STDOUT  Standard Output redirect > is shorthand for 1>
+2   STDERR  Standard Error
+
+The shell variable $? will be set with a non-zero value if the command fails
+
+You can't embed a single quite inside single quotes.
+$ echo "$USER won't pay $5 for coffee"  # WRONG
+$ echo "$USER won't pay \$5 for coffee"  # CORRECT
+
+41
+Use { last; } to group commands together of $( )
+
+2.17 Connecting Two Programs by Using Output as Arguments
+Use command substitution feature of bash:
+$ rm $(find . -name '*.class')
+$() syntax is prefered over the older backward quotes ``
+
+2.21 Keeping Files Safe from Accidental Overwriting
+To tell the shell to be more careful
+$ set -o noclobber              // use +o to turn the option off
+$ echo something >| my.file     // >| to override noclobber if set
+
+3.1 Getting Input from a File
+$ wc < my.file
+$ wc my.file
+
+3.2 HERE-DOCUMENT
+With << character, use can use a here-document and tell teh shell to redirect STDIN to
+come from that (temporary) document. The << syntax says that we want to create a
+temporary input source, and the EOF is just an arbitrary string.
+Do we always want to escape the here-documents? Cookbook says yes.
+
+<<EOF
+EOF
+<<\EOF or <<'EOF'      // treat "here" data differently, escape
+EOF
+<<-'EOF'               // hyphen tells bash to ingrnore leading tab characters.
+
+3.5 Getting User Input
+$ read -p "Answer me this " ANSWER      // Read will read user input and place in shell var REPLY
+
+4.2 Telling If a Command Succeeded or Not
+The shell variable $? will be set with a non-zero value if the command fails
+$ echo $?
+
+4.3 Running Several Commands in Sequence
+$ long ; medium ; short      // Run regardless if preceding program worked
+$ long && medium && short    // Only run the next program if preceding program worked
+
+4.7 Running Long Jobs Unatteneded
+$ nohup long &
+If you want to run a job in the background and exect to exit the shell before the job completes.
+Bash sends a hangup (hup) signal to all of its child processes. Put a job in the background using &
+nohup command simply sets up the child process to ignore the hang-up signals.
+You can still kill the job with kill command, bc kill sends SIGTERM signal not a SIGHUP
+
+4.8 Displaying Error Messages When Failures Occur
+$ cmd || printf "%b" "cmd failed. You're on your own\n"     use (||)
+
+4.10 Running All Scripts in a Directory // no need to keep a list
+for SCRIPT in /path/to/scripts/dir/*
+do
+    if [ -f $SCRIPT -a -x $SCRIPT ]
+    then
+        $SCRIPT
+    fi
+done
+

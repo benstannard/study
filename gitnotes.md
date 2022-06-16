@@ -36,11 +36,16 @@ If you want to rebase when pulling: `git config --global pull.rebase "true"`
 When you have your project at a point that you want to share, you have to push it **upstream**. The command is simple:  
 `git push origin main`
 
-###### Inspecting a Remote and Renaming
+###### Inspecting a Remote
 
-`git remote show <remote>`
-`git remote show origin`
-`git remote rename master main`
+If you want to see more information about a particulare remote, use `git remote show <remote>` commands.  
+`git remote show <remote>`  
+`git remote show origin`  
+
+
+###### Renaming
+
+`git remote rename master main`  
 
 ###### Tagging
 
