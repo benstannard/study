@@ -1,3 +1,49 @@
+# Git - [Pro Git](https://git-scm.com/book/en/v2)
+## Git Basics
+`git init`  
+`git clone https://github.com/benstannard/study`  
+`git commit -m "Story 182: fix benchmakr for speed"`  
+`git commit --amend`  
+
+`git log -p --patch`  
+`git log -n <limit> -10 --since=2.weeks --until`  
+`git log --stat`  
+`git log --oneline --decorate`  
+`git log --graph`  
+
+## Git Branching
+
+###### Working with Remotes
+
+To be able to collaborate on any Git projects, you need to know how to manage your remote repositories.  
+Remote repos are versions of your project that are hosted on the Internet or network somewhere.  
+Collaborating with others involves managing these repos and pushing and pulling data to and from them when you need to share work.  
+We can use the shortname in lieu of the whole URL
+
+`git remote -v`  
+`git remote add <shortname> <url>`  
+
+###### Fetching and Pulling from Your Remotes
+
+To get data from remote projects, run:  
+`git fetch <remote>` fetchs any new work that has been pushed to that servce since you cloned/fetched it.  
+`git fetch` only downloads the data to your local repo - you have to merge it mannuall into your work when you're ready.  
+`git pull` command automatically fetch and then merge that remote branch into your current branch.  
+If you want to rebase when pulling: `git config --global pull.rebase "true"`  
+
+###### Pushing to Your Remotes
+
+When you have your project at a point that you want to share, you have to push it **upstream**. The command is simple:  
+`git push origin main`
+
+###### Inspecting a Remote, Renaming, and Removing
+`git remote show <remote>`
+`git remote show origin`
+`git remote rename master main`
+
+
+
+
 # 10.1 Git Internals - Plumbing and Porcelain [Objects, Tree, Commit]
 Git is fundamentally a content-addressable filesystem with a VCS user interface written on top of it.
 All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree.
