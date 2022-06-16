@@ -1,5 +1,7 @@
 # Git - [Pro Git](https://git-scm.com/book/en/v2)
+
 ## Git Basics
+
 `git init`  
 `git clone https://github.com/benstannard/study`  
 `git commit -m "Story 182: fix benchmakr for speed"`  
@@ -10,8 +12,6 @@
 `git log --stat`  
 `git log --oneline --decorate`  
 `git log --graph`  
-
-## Git Branching
 
 ###### Working with Remotes
 
@@ -36,15 +36,171 @@ If you want to rebase when pulling: `git config --global pull.rebase "true"`
 When you have your project at a point that you want to share, you have to push it **upstream**. The command is simple:  
 `git push origin main`
 
-###### Inspecting a Remote, Renaming, and Removing
+###### Inspecting a Remote and Renaming
+
 `git remote show <remote>`
 `git remote show origin`
 `git remote rename master main`
 
+###### Tagging
+
+Listing the existing tags in Git is straightforward. Just type  
+`git tag`  
+`git tag -l --list`  
+
+###### Creating Tags
+Git supports two types of tags: **lightweight**, light a branch that does change.  
+And **annotated**, stored as full objects in the Git database. They're checksummed; contain the tagger name, email, and date, and a tagging message; and be signed and verifed with GNU Privacy Guard (GPG). It is generally recommed that you create **annotated** tags.  
+`git tag -a v1.4 -m "my version 1.4"`  
+`git show v1.4`  
+
+###### Tagging Later
+To tag a older commit, you specify the commit checksum at the end of the command:  
+`git tag -a v1.2 9fceb02`  
+
+###### Sharing Tags and Deleting
+By default, `git push` doesn't transfer tags to remote servers. You have to explicitly push tags to a shared server after you have created them.  
+`git push origin v1.5`  
+`git push origin --tags`  
+`git tag -d v1.4.1-w`  
+
+###### Checking out Tags
+If you need to make changes -- say fixing a bug on a older version - you will generally want to create a branch:  
+`git checkout -b version2 v2.0.0`  
+
+
+## Git Branching
+
+###### Branches in a Nutshell
+
+A **branch** is simply a lightweight moveable pointer to one of these commits. Every time the you commit, the `main` brnach pointer moves forward automatically.  
+**Branching** means you diverge from the main line of development and continue to do work without messing with that main line.  
+Git encourages a workflow that **branches and mergers often**, even multiple times in a day.  
+How does Git know what branch you're currently on? It keeps a special pointer called **HEAD**.  
+**fast-forward** no divergent work to merge together.
+**merge commit** from a three way merge automattically create a new commit that points to it, it's special, has more than one parent commit.  
+
+`git branch testing`  
+`git checkout testing`  
+`git checkout -b <newbranchname>`  
+`git switch --create <branch>`  
+`git switch ~`  
+
+###### Basic Merging
+
+Your work is complete and ready to merged into `main` branch. Just checkout the branch you wish to merge into and run:  
+`git checkout main`  
+`git merge iss53`  
+`git branch -d iss53`  
+
+###### Basic Merge Conflicts
+
+Git pauses the process while you resolve the conflict. Run:  
+`git status`  
+`git mergetool`  
+
+###### Branch Management
+
+Lets look at some branch-management tools that will come in handy when you being using branches all the time.  
+`git branch`  
+`git branch -v`  to see the last commit on each branch  
+`git branch --merged --no-merged`  filters this list to branches that you have or have not yet merged into the branch you're currently on.
+
+###### Changing a branch name
+
+`git branch --move <old-branch-name> <new-brance-name>`  
+`git push --set-upstream origin <new-branch-name>`  
+`git push origin --delete <old-branch-name>`  
+`git branch --move master main`  
+`git push --set-upstream origin main`  
+`git branch --all`  
+`git push origin --delete master`  
+
+###### Long-Running Branches
+
+`main` branch that entirely stable or code that has been or will be released.  
+`develop` branch in parallel that they work from or use to test stability - it isn't always stable, but when it gets to a stable state, it can be merged.  
+`iss53` or short-lived branches are merged into `develop` when they're ready and make sure they pass all tests and don't introduce bugs.  
+
+In reality, we're talking about pointers moving up the line of commits you're making.  
+The idea is that your branches are at various levels of stability; when they reach a more stable level, they're merged into the branch above.  
+
+###### Remote Branches
+
+Remote-tracking braches are references to the state of remote branches, think of them as bookmarks. `<remote>/<branch>` `origin/main`  
+`git ls-remote <remote>`
+
+**Local and remove work can diverge** to synchronize your work with a give remote, run:  
+`git fetch origin`  
+
+###### Pushing
+When you want to share a branch with the world, you need to push it up to a remote which you have write access.  
+
+`git push <remote> <branch>`  
+`git push origin serverfix` next time coworker runs `git fetch origin` from the server, they will see the new branch.  
+**To merge into your own current branch** run `git merge origin/serverfix`  
+**If you want your own serverfix branch to workon**, you can base it off remote-tracking branch:  
+`git checkout -b serverfix origin/serverfix`
+
+###### Tracking Branches
+
+Checking out a local branch from a remote-tracking branch automatically creates what is called a "tracking branch".  
+**Tracking branches** are local branches that have a direct relationship to a remote branch. If you're on a tracking branch and run  
+`git pull` Git automatically knows which server to fetch from and which branch to merge in.  
+`git checkout -b <branch> <remote>/<branch>`  
+`git checkout --track <remote>/<branch>`  
+`git checkout --track origin/serverfix`  
+`git branch -vv`  to see what tracking branches you have setup.  
+`git fetch --all; git branch -vv`  
+
+###### Pulling and Deleting Remote Branch
+
+`git pull` is essentially a `git fetch` immediately followed by a `git merge`.  
+Generally it's better to simply use the `fetch` and `merge` commands explicitly as magic of `git pull` can be confusing.  
+`git push origin --delete serverfix`  
+
+## Rebasing
+
+In Git, there are two main ways to integrate changes from one branch into another: the `merge` and the `rebase`.  
+`merge` command performs a three-way merge.  
+With **rebase** you take all the changes that were committed on one branch and replay them on a different branch. The operation goes to the common ancestor of the two branches, the one your on and the one you're rebasing onto, getting the diff, applying changes.  
+Rebasing makes for a cleaner history, it looks like a linear history, appears all teh work happend in series even though it was parallel.  
+It's only the history that's different.  
+Rebasing replays changes from one line of work onto antoher in teh order they were introduced.  
+Merging takes the endpoints and merges them together.
+`git checkout experiment`  
+`git rebase master`  
+
+**At this point, you can go back to the master branch ad do a fast-forward merge**
+`git checkout master`  
+`git merge experiment`  
+
+**Often** you'll do this ot make sure your commits apply cleanly on a remote branch, like contributing to a project you don't maintain.  
+In this case you work in a brance, then rebase your work onto `origin/main` when you're ready to submit your patches to the main project.  
+The maintainer doesn't haev to do any integration work - just a fast-forward or a clean apply.  
+
+###### More Interestings Rebases
+
+`git rebase --onto master server client`  
+`git checkout master`  
+`git merge client`  
+`git rebase <basebranch> <topicbranch>`  
+`git rebase master server`  
+`git checkout master`  
+`git merge server`  
+
+###### Perils of Rebasing
+
+**Do not rebase commits that exist outside your repo and that people may have worked on**
+Only ever rebase commits that have never left your own computer, you'll be fine.  
+If you rebase commits that have been pushed, and people base work on those commits, you will find trouble.  
+Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.  
 
 
 
-# 10.1 Git Internals - Plumbing and Porcelain [Objects, Tree, Commit]
+
+
+## 10.1 Git Internals - Plumbing and Porcelain [Objects, Tree, Commit]
 Git is fundamentally a content-addressable filesystem with a VCS user interface written on top of it.
 All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree.
 Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.
@@ -57,7 +213,7 @@ These commands are generally referred to as Git's "plumbing" commands, while the
 When you run git init in a new or existing directory, Git creates the .git directory, which is where almost everything that Git stores and manipulates is located.
 If you want to back up or clone your repository, copying this single directory elsewhere gives you nearly everything you need
 
-## Four Important parts in .git directory
+###### Four Important parts in .git directory
 the HEAD
 index files (yet to be created)
 objects and refs directories.
@@ -78,7 +234,7 @@ objects/
 refs/
 
 
-## Git Objects  $ find .git/objects
+###### Git Objects  $ find .git/objects
 Git is a content-addressable filesystem. Great. What does that mean?
 It means that at the core of Git is a simple key-value data store.
 You can insert any kind of content into a Git repository, for which Git will hand you back a unique key you can use later to retrieve that content.
@@ -113,12 +269,12 @@ $ echo 'version 1' > test.txt
 $ git hash-object -w test.txt
 83baae61804e65cc73a7201a7252750c76066a30
 
-#### Blob
+###### Blob
 But remembering the SHA-1 key for each version of your file isn't practical.
 Plus, you aren't storing the filename in your system - just the content.
 This object type is called a blob. You can have Git tell you the object type of any object in Git, given its SHA-1 key, with git cat-file -t:
 
-## Tree Objects
+###### Tree Objects
 Tree objects solve the problem of storing the filename and allows you to store a group of files together.
 All the content is stored as tree and blob objects.
 With trees corresponding to UNIX directory entries and blobs corresponding more or less to inodes or file contents.
@@ -127,11 +283,11 @@ For example, the most recent tree in a project may look something like this:
 $ git cat-file -p master^{tree}
 $ git write-tree
 
-## Commit Objects
+###### Commit Objects
 All Git objects are stored the same way, just with different types - instead of the string blob, the header will begin with commit or tree.
 Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.
 
-## Git References [HEAD, tags, remotes]
+###### Git References [HEAD, tags, remotes]
 If you were interested in seeing the history of your repository reachable from commit, say, 1a410e, you could run something like git log 1a410e to display that history,
 but you would still have to remember that 1a410e is the commit you want to use as the starting point for that history.
 Instead, it would be easier if you had a file in which you could store that SHA-1 value under a simple name so you could use that simple name rather than the raw SHA-1 value.
