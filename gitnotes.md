@@ -13,6 +13,7 @@
 `git log --oneline --decorate`  
 `git log --graph`  
 `git log -n <limit> -10 --since=2.weeks --until`  
+`git show 5eba8a`  
 
 ## Working with Remotes
 
