@@ -1,4 +1,4 @@
-# [Compose specification] (https://docs.docker.com/compose/compose-file/)
+# [Compose specification](https://docs.docker.com/compose/compose-file/)
 
 The `Compose` file is a `YAML` file Docker application defining:
 + **services** computing components of an application are defined as `Services`
