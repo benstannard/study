@@ -8,18 +8,17 @@
 `git commit --amend`  
 
 `git log -p --patch`  
-`git log -n <limit> -10 --since=2.weeks --until`  
+`git log -p --submodule`  
 `git log --stat`  
 `git log --oneline --decorate`  
 `git log --graph`  
+`git log -n <limit> -10 --since=2.weeks --until`  
 
-###### Working with Remotes
+## Working with Remotes
 
-To be able to collaborate on any Git projects, you need to know how to manage your remote repositories.  
-Remote repos are versions of your project that are hosted on the Internet or network somewhere.  
-Collaborating with others involves managing these repos and pushing and pulling data to and from them when you need to share work.  
+To be able to collaborate on any Git projects, you need to know how to manage your remote repositories. Remote repos are versions of your project that are hosted on the Internet or network somewhere. Collaborating with others involves managing these repos and pushing and pulling data to and from them when you need to share work.  
+
 We can use the shortname in lieu of the whole URL
-
 `git remote -v`  
 `git remote add <shortname> <url>`  
 
@@ -60,36 +59,46 @@ And **annotated**, stored as full objects in the Git database. They're checksumm
 `git show v1.4`  
 
 ###### Tagging Later
+
 To tag a older commit, you specify the commit checksum at the end of the command:  
 `git tag -a v1.2 9fceb02`  
 
 ###### Sharing Tags and Deleting
+
 By default, `git push` doesn't transfer tags to remote servers. You have to explicitly push tags to a shared server after you have created them.  
 `git push origin v1.5`  
 `git push origin --tags`  
 `git tag -d v1.4.1-w`  
 
 ###### Checking out Tags
+
 If you need to make changes -- say fixing a bug on a older version - you will generally want to create a branch:  
 `git checkout -b version2 v2.0.0`  
 
 
 ## Git Branching
 
-###### Branches in a Nutshell
+### Branches in a Nutshell
 
-A **branch** is simply a lightweight moveable pointer to one of these commits. Every time the you commit, the `main` brnach pointer moves forward automatically.  
-**Branching** means you diverge from the main line of development and continue to do work without messing with that main line.  
-Git encourages a workflow that **branches and mergers often**, even multiple times in a day.  
-How does Git know what branch you're currently on? It keeps a special pointer called **HEAD**.  
-**fast-forward** no divergent work to merge together.
+A **branch** is simply a lightweight moveable pointer to one of these commits. Every time the you commit, the `main` brnach pointer moves forward automatically. **Branching** means you diverge from the main line of development and continue to do work without messing with that main line. Git encourages a workflow that **branches and merges often**, even multiple times in a day. How does Git know what branch you're currently on? It keeps a special pointer called **HEAD**.
+
+**fast-forward** no divergent work to merge together.  
 **merge commit** from a three way merge automattically create a new commit that points to it, it's special, has more than one parent commit.  
+
+#### Types of Branches
+
+Older but good [article](https://longair.net/blog/2009/04/16/git-fetch-and-merge/)  
+
+`git branch` **local**  
+`git branch -r` **remote-tracking branches**  
+
 
 `git branch testing`  
 `git checkout testing`  
 `git checkout -b <newbranchname>`  
-`git switch --create <branch>`  
-`git switch ~`  
+`git branch -r ` *remote-tracking branches*  
+`git checkout -b serverfix origin/serverfix`  checkout branch based on remote-tracking branch.  
+
 
 ###### Basic Merging
 
@@ -200,6 +209,45 @@ The maintainer doesn't haev to do any integration work - just a fast-forward or 
 Only ever rebase commits that have never left your own computer, you'll be fine.  
 If you rebase commits that have been pushed, and people base work on those commits, you will find trouble.  
 Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.  
+
+## [Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
+
+**Submodules** allow you to keep a git repository as a subdirectory of another git repository. This lets you clone another repository into your project and keep your commits separate. Git submodules are simply a reference to another repository at a particular snapshot in time. Git submodules enable a Git repository to incorporate and track version history of external code, submodules are very static and only track specific commits. Submodules do not track git refs or branches and are not automatically updated when the host repository is updated.  
+
+Submodules will add the subproject into a directory named the same as the repository. A new .gitmodules file will be created that contains meta data about the mapping between the submodule project's URL and local directory.  
+
+If often happens that while working on one project, you need to use another project from within it. Perhaps it's a library that a third party developed. A common issue arises in these scenarios: you want to be able to treat the two projects as seperate yet still be able to use one from within the other. Suppose you're creating Atom feeds. Instead of writing your own Atom-generating code, you decide to use a library. Instead of copying the source code into your project, which could make mergin upstream changes difficult, Git addresses this issue using `submodules`.  
+
+###### Starting with Submodules
+
+`git submodule add <url>`  
+`git submodule add https://github.com/chaconic/DbConnector`  
+`git submodule update --init --recursive`  **use to be on the safe side**, grabs any new or nested submodules.  
+`git pull --recurse-submodules`  update with a `git pull`.  
+
+###### Cloning a Project with Submodules
+
+When you clone a project, by default you get the directories that contain submodules, but none of the files within them yet:  
+`git clone <url>`  The *submodule* directory will be there, but you must run two commands:  
+`git submodule init`  to initalize your locone configuration file, and  
+`git submodule update`  to fetch all the data from that project and checkout the appropirate commit listed`  
+
+**as one command on git clone or after**
+`git clone --recurse-submodules <url>`  **AS ONE COMMAND ON git clone**  
+`git submodule update --init`  combine above steps to initalize, fetch, and checkout any nested submodules.  
+`git submodule update --init --recursive` foolproof command of above.  
+
+###### Working on a Project with Submodules
+
+`git submodule update --remote` Git will go into your submodules and fetch and update for you. Git will by default try to update **all**.  
+
+###### Pulling Upstream Changes from the Project Remote
+
+`git pull` does not **update* the submodules.   
+
+
+
+
 
 
 
