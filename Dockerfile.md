@@ -18,9 +18,10 @@ Docker can build images automatically by reading the instructions in a `Dockerfi
 A container is a sandboxed process (`/proc` has info on running processes, pseudo filesystem) on your machine that is isolated from all other processes on the host machine leveraging `kernal namespaces`, `cgroups` and changing the root `chroot`. It is a runnable instance of an image. It's portable, can be run on any **OS**. Containers are isolated from each other and run their own software, binaries, and configurations.  
 
 **Namespaces**  
-Limit what you can see, restricts the view of processes on the host machine. Created with syscalls, using clone flags. Unix Timesharing System, Process IDs, Mounts, Network, User IDs, InterProcess Comms.  
+Limit what you can see, restricts the view of processes on the host machine. Created with syscalls, using clone flags. Unix Timesharing System, Process IDs, Mounts, Network, User IDs, InterProcess Comms.
 
 ## [Docker run reference](https://docs.docker.com/engine/reference/run/)
+
 ```
 docker run --detach -d --port -p 80:80 docker/getting-started
 docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]         **must specify an IMAGE**
@@ -86,8 +87,6 @@ Your container will use the same DNS servers as the host by default, but you can
 ### Clean up (--rm)
 
 By default a container's file system persists even after the container exits. This makes debugging a lot easier, since you can inspect the final state, and you retain all of your data by default. But if you are running short-term **foreground** processes, these container file systems can really pile up. If instead, you'd like Docker to **automatically clean up the container and remove the file system when the container exits**, you can add the `--rm` flag.  
-
-
 
 ## [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 see [best practices guide](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
