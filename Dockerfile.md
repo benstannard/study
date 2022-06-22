@@ -1,15 +1,16 @@
 # [Dockerfile](https://docs.docker.com/engine/reference/builder/)
 
-`# syntax=docker/dockerfile:1`  
-`FROM node:12-apline`  
-`RUN apk add --no-cache python2 g++ make`  
-`WORKDIR /app`  
-`COPY . .`  
-`RUN yarn install --production`  
-`CMD ["node", "src/index.js"]`  
-`COPY . .`  
-
+```
+# syntax=docker/dockerfile:1
+FROM node:12-apline
+RUN apk add --no-cache python2 g++ make
+WORKDIR /app
+COPY . .
+RUN yarn install --production
+CMD ["node", "src/index.js"]
+````
 See also [Best Practices Guide](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)  
+
 Docker can build images automatically by reading the instructions in a `Dockerfile`. A `Dockerfile` is just a text document that contains all the commands a user could call on the command line to assemable an image. Using `docker build` users can create automated build that executes several command-line instructions.
 
 ## What is a container?
@@ -20,8 +21,10 @@ A container is a sandboxed process (`/proc` has info on running processes, pseud
 Limit what you can see, restricts the view of processes on the host machine. Created with syscalls, using clone flags. Unix Timesharing System, Process IDs, Mounts, Network, User IDs, InterProcess Comms.  
 
 ## [Docker run reference](https://docs.docker.com/engine/reference/run/)
-`docker run --detach -d --port -p 80:80 docker/getting-started`  
-`docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]`  **must specify an IMAGE**
+```
+docker run --detach -d --port -p 80:80 docker/getting-started
+docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]         **must specify an IMAGE**
+```
 
 Docker runs processes in isolated containers. A container is a process which runs on a host. The host may be local or remote. When you execute `docker run`, the container process that runs is isolated in that it has its own file system, its own networking, and its own isolated process tree seperate from the host.  
 
@@ -31,11 +34,11 @@ Docker runs processes in isolated containers. A container is a process which run
 + network settings
 + runtime constraints on CPU and memory
 
-`docker run` has more `[OPTIONS]` than any other command to allow the operator to override nearly all defaults.  
+`docker run` has more `[OPTIONS]` than any other command to allow the operator to override nearly all defaults.
 
 ### Detached (-d)
 
-To start a container in detached mode, use just -d option. These containers exist when the root process used to run the container exists, unless you also specify the `--rm` option. If you use with `-d` with `--rm`, the container is removed when it exits or when the daemon exits, whichever happens first.  
+To start a container in detached mode, use just -d option. By design, these containers exits when the root process used to run the container exists, unless you also specify the `--rm` option. If you use with `-d` with `--rm`, the container is removed when it exits or when the daemon exits, whichever happens first. 
 
 ### Foreground
 
@@ -56,7 +59,7 @@ The operation can identify a container in three ways:
 
 ### Image[:tag]
 
-`docker run ubuntu:14.04`  
+`docker run ubuntu:14.04`
 
 ### PID settings (--pid)
 

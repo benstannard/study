@@ -1,7 +1,7 @@
 # [Compose specification](https://docs.docker.com/compose/compose-file/)
 
 The `Compose` file is a `YAML` file Docker application defining:
-+ **services** computing components of an application are defined as `Services`
++ **services** computing components of an application are defined as `Services`. Each service will *equate* to a new `docker run` command.
 + **networks** services communicate with each other `Networks`
 + **volumes** services store and share persistent data into `Volumes`
 + **configs** some services require configuration data that is dependent on the runtime or platform.
@@ -98,3 +98,42 @@ A **Service** is/are:
 + an abstract definition of computing resource within an application which can be scaled/replaced independently or from other components.
 + Services are backed by a set of containers, run by the platform according to replication requirements and placement constraints.
 + Defined by a Docker image and set of runtime arguments.
+
+## Networks top-level element
+
+**Networks** are the layer that allow services to communicate with each other. The networking model exposed to a services is limited to a simple IP connection with target services and the external resources, while the Network definition allows fine-tuning the actual.  
+
+Networks can be created by specifying the network name under a top-level `network` section. Services can connect to netwroks by specifying the network name under the service `networks` subsection. Examples:  
+
+```
+services:
+  frontend:
+    image: awesome/webapp
+    networks:
+      - front-tier
+      - back-tier
+
+networks:
+  front-tier:
+  back-tier:
+```
+
+## Volumes top-level element
+
+**Volumes** are persistent data stores implemented by the platform. The `volume` section allows configuration of named volumes that can be reused across multiple services. Here's an example of a two-service setup where a database's data directory is shared with another services as a volume named `db-data` so that it can be periodically backed up:  
+
+```
+services:
+  backend:
+    image: awesome/database
+    volumes:
+      - db-data:/etc/data
+
+  backup:
+    image: backup-service
+    volumes:
+      - db-data:/var/lib/backup/data
+
+volumes:
+  db-data:
+```
