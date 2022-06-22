@@ -38,7 +38,7 @@ Docker runs processes in isolated containers. A container is a process which run
 
 ### Detached (-d)
 
-To start a container in detached mode, use just -d option. By design, these containers exits when the root process used to run the container exists, unless you also specify the `--rm` option. If you use with `-d` with `--rm`, the container is removed when it exits or when the daemon exits, whichever happens first. 
+To start a container in detached mode, use just -d option. By design, these containers exits when the root process used to run the container exists, unless you also specify the `--rm` option. If you use with `-d` with `--rm`, the container is removed when it exits or when the daemon exits, whichever happens first.
 
 ### Foreground
 
@@ -48,7 +48,7 @@ In foreground mode (the default when `-d` is not specified), `docker run` cat st
 + `-t` Allocate a pseudo-tty
 + `-i` Keep STDIN open even if not attached
 + `-a=[]` Attach to `STDIN`, `STDOUT`, and/or `STDERR` **if you do not specify**, then Docker will attached both stdout, stderr
-+ `--sig-proxy=true` Proxy all recieved signals to the process (non-TTY mode only) 
++ `--sig-proxy=true` Proxy all recieved signals to the process (non-TTY mode only)
 
 ### Name (--name)
 
@@ -63,14 +63,17 @@ The operation can identify a container in three ways:
 
 ### PID settings (--pid)
 
-By default, all containers have PID namespaces enables. PID namespaces provide separation of processes. The PID Namespace removes the view of the system processes, and allows the process ids to be reused include pid 1. In certain cases you want your contaners to share the host's process namespace, basically allowing processes within the container to see all of the processes on the system. For example:  
+By default, all containers have PID namespaces enables. PID namespaces provide separation of processes. The PID Namespace removes the view of the system processes, and allows the process ids to be reused include pid 1. In certain cases you want your contaners to share the host's process namespace, basically allowing processes within the container to see all of the processes on the system. For example:
 
-`FROM alpine:latest`  
-`RUN apk add --update htop && rm -rf /var/cache/apk/*`  
-`CMD ["htop"]`  
-
-`docker build -t mytop .`  
-`docker run --it --rm --pid=host myhtop`  
+```
+FROM alpine:latest
+RUN apk add --update htop && rm -rf /var/cache/apk/*
+CMD ["htop"]
+```
+```
+docker build -t mytop .
+docker run --it --rm --pid=host myhtop
+```
 
 ### Network settings
 
@@ -86,7 +89,12 @@ By default a container's file system persists even after the container exits. Th
 
 
 
+## [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
+see [best practices guide](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+
 ### Usage
+
+Note that each instruction is run independently, so `RUN cd /tmp` will not have any effect on the next instructions.  
 
 `docker build` command builds an image from a `Dockerfile` and a context. The build's context is the set of files at a specified location `PATH` or `URL`. The `PATH` is a directory on your local filesystems. The `URL` is a Git respoitory location.  
 
@@ -94,47 +102,62 @@ The build context is processed recursively. So a `PATH` includes any subdirector
 
 `docker build .` uses current directory as build context. The build is run by the Docker **daemon**, not the CLI. It's *best* to start with an empty directory as context and keep your Dockerfile in that directory. Add only the files needed for building the Dockerfile.  
 
-To use a file in the build context, the `Dockerfile` referst to the file specified in an instruction, for example a `COPY` instruction.  
-
 `docker build -t benstan/myapp .` You can specify a repository and a tag at which to save the new image if the build succeeds.  
 
 Before the Docker daemon runs the instructions in the `Dockerfile`, it performs a preliminary validation of the `Dockerfile`. If correct, the daemon runs the instructions in the `Dockerfile` one-by-one, committing the results of each instruction to a new image if neccessary, before finally outputting the **ID** of your new image. Whenever possible, Docker uses a build-cache to accelerate the `docker build` process significantly.  
 
-Docker supports new backend for executing builds. See [BuildKit](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md)  
+When you're done with your build, look into scanning your image with `docker scan`.  
+
+Docker supports new backend for executing builds. See [BuildKit](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md)
 
 ### Format
 
 A `Dockerfile` **must begin with a `FROM` instruction.** The `FROM` instruction specifices the *Parent Image* from which you are building.
 
-Here is the format for a `Dockerfile`:  
-`# Comment`  
-`INSTRUCTION arguments`  
+Here is the format for a `Dockerfile`:
+```
+# Comment
+INSTRUCTION arguments
+```
 
 ### Parse Directives & escape
 
-Parser directives are optional, and affect the way in which subsequent lines are handled.  **escape** default characer is `\`.  
+Parser directives are optional, and affect the way in which subsequent lines are handled.  **escape** default characer is `\`.
 
 ### Environment replacements
 
-Environemnt variables (declared with the `ENV` statement) can also be used in certain instruction as variables to be interpreted by the `Dockerfile`. Environment variables are noted either with `$variable_name` or `${variable_name`}  
-`FROM busybox`  
-`ENV FOO=/bar`  
-`WORKDIR ${FOO}`  # Workdir /bar  
+Environemnt variables (declared with the `ENV` statement) can also be used in certain instruction as variables to be interpreted by the `Dockerfile`. Environment variables are noted either with `$variable_name` or `${variable_name`}.
+```
+FROM busybox
+ENV FOO=/bar
+WORKDIR ${FOO}  # Workdir /bar
+```
 
 ### FROM
 
-The `FROM` instruction initializes a new build stge and sets the *Base Image* for subsequent instructions. `Dockerfile` must start by **pulling an image** and it's easy from *Public Repositories*.
-`ARG VERSION=latest`  
-`FROM busybox:${VERSION}`  
+The `FROM` instruction initializes a new build stage and sets the *Base Image* for subsequent instructions. A valid `Dockerfile` must start with a `FROM` instruction. It's easy to start by **pulling an image** from *Public Repositories*.   
+
+`FROM` instructions support variables that are declared by any `ARG` instruction that occur before the first `FROM`.
+```
+ARG CODE_VERSION=latest
+FROM base:${CODE_VERSION}
+CMD /code/run-app
+```
+
+An `ARG` declared before a `FROM` is outside of a build stage, so it can't be used in any instruction after a `FROM`.
 
 ### RUN
 
-**RUN** has 2 forms: *shell* and *exec*
-`RUN <command>` (*shell* form)  
-`RUN ["executable", "param1", "param2"]` **must** use double quotes, is parsed as a JSON array.  
-`RUN /bin/bash -c 'source $HOME/.bashrc; echo $HOME'  
-`RUN ["sh", "-c", "echo $HOME"]  
-The `RUN` instruction will execute any commands in a new layer on top of the current image and commit the results.  
+**RUN** has 2 forms: *shell* and *exec*, *exec* makes it possible to avoid shell string munging.
+```
+RUN <command>` (*shell* form)
+RUN ["executable", "param1", "param2"]` **must** use double quotes, is parsed as a JSON array.
+RUN /bin/bash -c 'source $HOME/.bashrc; echo $HOME'
+RUN ["sh", "-c", "echo $HOME"]
+```
+The `RUN` instruction will execute any commands in a new layer on top of the current image and commit the results. The resulting committed image will be used for the next step in the `Dockerfile`.  
+
+Laying `RUN` instruction and generating commits conforms to the core concepts of Docker where commits are cheap and containers can be created from any point in a image's history, must like source control.  
 
 ### CMD
 
@@ -143,56 +166,62 @@ The `RUN` instruction will execute any commands in a new layer on top of the cur
 **CMD** instruction has three forms: *exec*, *default*, *shell*  
 `CMD ["executable", "param1", "param2"]` (*exec* form is preferred form)  
 
-### RUN vs CMD
+#### RUN vs CMD
 
-Do not confuse `RUN` with `CMD`. `RUN` actually runs a command and commits the result; `CMD` does not execute anything at build time, but specifies the intended command for the image.  
+Do not confuse `RUN` with `CMD`. `RUN` actually runs a command and commits the result; `CMD` does not execute anything at build time, but specifies the intended command for the image.
 
 ### LABEL
 
-The `LABEL` instruction adds metadata to an image. A `LABEL` is a key-value pair.  
-`LABEL version="1.0"`  
-`LABEL description="This text illustrates"  
+The `LABEL` instruction adds metadata to an image. A `LABEL` is a key-value pair.
+```
+LABEL version="1.0"
+LABEL description="This text illustrates"
+```
 
-### Expose
+### EXPOSE
 
 The `EXPOSE` instruction informs Docker that the container listens on the specified network port at runtime. TCP is default if not specified. The `EXPOSE` instruction does not actually publish the port. It functions as a type of documentaion between the persone who builds the image and the person who runs the container, about which ports are intended to be published.  
 
 To *actually* publish the pork when running the container, use the `-p` flag on `docker run -p 80:80`  
 `EXPOSE <port> [<port>/<protocol>...]`  
 
-`docker network` command supports creating networks for communication amoung containers without the need to publish specific ports, because the containers connected to the network can communication with each other over any port.  
+`docker network` command supports creating networks for communication amoung containers without the need to publish specific ports, because the containers connected to the network can communication with each other over any port.
 
 ### ENV
 
-`ENV <key>=<value>` ...  
-`ENV MY_DOG="John Doe"`
+```
+ENV <key>=<value>` ...
+ENV MY_DOG="John Doe"
+```
 
 The `ENV` instruction sets the environment variable <key> to the value <value>. This value will be interpreted for other environment variables. Variables set using `ENV` will persist when a contain is run from the resulting image. You can view the values using `docker inspect`, and changing them using `docker run --env <key>=<value>`. If an environment variable is only needed during build, and not in the the final image, consider setting a value for a single command instead or using `ARG` which is not persisted in the final image.
-`RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ...` -or-  
-`ARG DEBIAN_FRONTEND=noninteractive`  
-`RUN apt-get update && apt-get install -y ...`  
 
 ### ADD
 
-The ADD instruction copies new files, directories or remote file URLs from <src> and adds them to the filesystem of the image at the path <dest>. Multiple <src> resources may be specified but if they are files or directories, their paths are interpreted as relative to the source of the context of the build.
+**FYI** *`COPY` is `ADD` without the tar and remote URL handling.* Best practices suggests using `COPY` where the magic of `ADD` is not required.  
 
-ADD has two forms:  
-`ADD [--chown=<user>:<group>] <src>... <dest>`  
-`ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]`  
-`ADD test.txt <WORKDIR>/relativeDir/`  
+The ADD instruction copies new files, directories or remote file URLs from <src> and adds them to the filesystem of the image at the path <dest>. Multiple <src> resources may be specified but if they are files or directories, their paths are interpreted as relative to the source of the context of the build.  
 
-`ADD` obeys the following rules:  
-- The <src> path must be inside the context of the build; you cannot ADD ../something /something, because the first step of a docker build is to send the context directory (and subdirectories) to the docker daemon.  
+ADD has two forms:
+```
+ADD [--chown=<user>:<group>] <src>... <dest>
+ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]
+ADD test.txt <WORKDIR>/relativeDir/
+```
 
-- If <src> is a URL and <dest> does not end with a trailing slash, then a file is downloaded from the URL and copied to <dest>.  
-
-- If <src> is a URL and <dest> does end with a trailing slash, then the filename is inferred from the URL and the file is downloaded to <dest>/<filename>. For instance, ADD http://example.com/foobar / would create the file /foobar. The URL must have a nontrivial path so that an appropriate filename can be discovered in this case (http://example.com will not work).  
-
-- If <src> is a directory, the entire contents of the directory are copied, including filesystem metadata.  
+`ADD` obeys the following rules:
++ The <src> path must be inside the context of the build; you cannot ADD ../something /something, because the first step of a docker build is to send the context directory (and subdirectories) to the docker daemon.
++ If <src> is a URL and <dest> does not end with a trailing slash, then a file is downloaded from the URL and copied to <dest>.
++ If <src> is a URL and <dest> does end with a trailing slash, then the filename is inferred from the URL and the file is downloaded to <dest>/<filename>. For instance, ADD http://example.com/foobar / would create the file /foobar. The URL must have a nontrivial path so that an appropriate filename can be discovered in this case (http://example.com will not work).
++ If <src> is a directory, the entire contents of the directory are copied, including filesystem metadata.
 
 ### COPY
 
 The `COPY` instruction copies new files or directories from <src> and adds them to the filesystem of the container at the path <dest>.  
+```
+COPY <src>... <dest>
+COPY test.txt relativeDir/
+```
 
 ### ENTRYPOINT
 
@@ -208,16 +237,14 @@ The `VOLUME` instruction creates a mount point with the specified name and marks
 
 ### WORKDIR
 
-The `WORKDIR` instruction sets the working directory for any `RUN`, `CMD`, `ENTRYPOINT`, `COPY`, `ADD` instructions that follow it in the `Dockerfile`. The `WORKDIR` instructions can be used **multiple** times in a `Dockerfile`  
-`WORKDIR /path/to/workdir`
+The `WORKDIR` instruction sets the working directory for any `RUN`, `CMD`, `ENTRYPOINT`, `COPY`, `ADD` instructions that follow it in the `Dockerfile`. The `WORKDIR` instructions can be used **multiple** times in a `Dockerfile`.
+```
+WORKDIR /path/to/workdir
+```
 
 ### ARG
 
 The `ARG` instruction defines a variable that users can pass at build-time to the builder with `docker build` command using the `--build-arg <varname>=<value>`.  
-
-
-
-
 
 ## [Volumes](https://docs.docker.com/storage/volumes/)
 
@@ -229,14 +256,16 @@ Volumes are the preferred mechanism for persisting data generated by and used by
 + Volume drivers let you store volumes on remote hosts or cloud providers, to encrypt or add functionality
 + New volumes can have their content pre-populated by a container
 
-`docker volume create my-vol`  
-`docker volume ls`  
-`docker volume inspect my-vol`  
-`docker volume rm my-vol`  
+```
+docker volume create my-vol
+docker volume ls
+docker volume inspect my-vol
+docker volume rm my-vol
+```
 
 ## Choose the -v or --mount flag
 
-In general, --mount is more explicit and verbose. The **biggest difference** is that the `-v` syntax combines all the options together in one field, while the `--mount` syntax separates them. When using volumes with services, **only** `--mount` is supported.  
+In general, --mount is more explicit and verbose. The **biggest difference** is that the `-v` syntax combines all the options together in one field, while the `--mount` syntax separates them. When using volumes with services, **only** `--mount` is supported.
 
 ## Start a container with a volume
 
