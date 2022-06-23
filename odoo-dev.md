@@ -189,6 +189,36 @@ The Fundamental Principle of Unit Testing = **Verify that a known, fixed input p
 
 ### [OCA Days 2020 - Testing best practices, tips and tricks](https://www.youtube.com/watch?v=pQ7TZELSpKY)
 
+```
+class TestCommonCase(SavepointCase):                                                # 1
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # disable tracking test suite wise
+        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))     # 2
+        cls.user_model = cls.env['res.users'].with_context(no_reset_password=True)  # 3
+        cls.new_user = cls.user_model_create({"name": "John", "login": "john"})
+
+    def test_my_custom_error(self):                                                 # 5
+        with self.assertRaises(exceptions.UserError) as exc:
+            self.my_model.write({"a_field": "bad value!"})
+        self.assertEqual(exc.exception.name, "The value is wrong sir!")
+
+
+    @mute.logger(                                                                   # 7
+       'odoo.models', 'odoo.models.unlink', 'odoo.addons.base.ir.ir_model'
+    )
+
+    def test_user_can_do_it(self):                                                  # 6
+        vals = {...}
+        rec = self.my_model.sudo(self.user_manager).create(vals.copy())
+        self.assertTrue(rec)
+        with self.assertRaises(exceptions.AccessError):
+            self.my_model.sudo(self.user_simple).create(vals.copy())
+        with self.assertRaises(exceptions.AccessError):
+            rec.sudo(self.user_simple).unlink()
+```
+
 #### Base test classes
 + `odoo.tests.common.SingleTransactionCase`
 + `odoo.tests.common.TrasactionCase` - most common,
@@ -294,36 +324,6 @@ The Fundamental Principle of Unit Testing = **Verify that a known, fixed input p
 + Pytest-odoo `$ pytest -s path/to/my_module`
 + Pytest-odoo `$ pytest -s path/to/my_module/test_feat1_`
 
-
-```
-class TestCommonCase(SavepointCase):                                                # 1
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        # disable tracking test suite wise
-        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))     # 2
-        cls.user_model = cls.env['res.users'].with_context(no_reset_password=True)  # 3
-        cls.new_user = cls.user_model_create({"name": "John", "login": "john"})
-
-    def test_my_custom_error(self):                                                 # 5
-        with self.assertRaises(exceptions.UserError) as exc:
-            self.my_model.write({"a_field": "bad value!"})
-        self.assertEqual(exc.exception.name, "The value is wrong sir!")
-
-
-    @mute.logger(                                                                   # 7
-       'odoo.models', 'odoo.models.unlink', 'odoo.addons.base.ir.ir_model'
-    )
-
-    def test_user_can_do_it(self):                                                  # 6
-        vals = {...}
-        rec = self.my_model.sudo(self.user_manager).create(vals.copy())
-        self.assertTrue(rec)
-        with self.assertRaises(exceptions.AccessError):
-            self.my_model.sudo(self.user_simple).create(vals.copy())
-        with self.assertRaises(exceptions.AccessError):
-            rec.sudo(self.user_simple).unlink()
-```
 
 
 
