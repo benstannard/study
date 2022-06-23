@@ -4,6 +4,13 @@
 + Version 15, the last three stable versions are supported
 + Odoo databases are incompatible between its major versions! The same is true for **addon modules**.
 
+## Things to remember
++ Odoo modles are kept in a *central registry*, available throught the environment object, which is usually accessed using `self.env`, `self.env["mymodel"]`
++ Model names must be **globally unique** as they are they key to accessing the model registry. Good practice to use the first word of the application as the first word in the models name as a **prefix**. Model Names should use the *singular form* library.book
+
+The `Book` model has the following relationships: (p189)
++ Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity. 
+
 ## Table of Contents
 **Intro**
 1. Quickstart
