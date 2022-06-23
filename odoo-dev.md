@@ -183,4 +183,154 @@ Security groups are organized in the same categories used for addon modules. To 
 
 ```
 
-### Step 3 - Adding automated tests
+### [Effective Unit Testing by Eliotte Rusty Harold](https://www.youtube.com/watch?v=fr1E9aVnBxw)
+
+The Fundamental Principle of Unit Testing = **Verify that a known, fixed input produces a known, fixed output.**
+
+### [OCA Days 2020 - Testing best practices, tips and tricks](https://www.youtube.com/watch?v=pQ7TZELSpKY)
+
+#### Base test classes
++ `odoo.tests.common.SingleTransactionCase`
++ `odoo.tests.common.TrasactionCase` - most common,
++ `odoo.tests.common.SavepointCase` -
++ `odoo.tests.common.HttpCase` - only one you can test behavior of controller
+
+#### 1 Use `SavepointCase`
++ Suitable for the majority of our test cases
++ Use it always if no special setup is required
++ Setup records and variables only once at the setup
++ Speed
+
+#### 2 Consider Disable tracking
++ Do it always unless you test tracking features
++ Boost tests speed
+
+#### 3 Do not send reset password
++ Do it always unless you test reset password features
++ Avoid email sending (for real!)
++ Boost tests speed
+
+#### 4 Avoid res.config.setting
++ res.config.settings.execute can be very heavy
++ Unless you use it to install modules (don't!)
++ Set company fields/groups/defaults/params directly
++ Fallback to res.config.settings.set_values if needed
++ Prevents strange env erros (en env reset)
++ Boost tests speed
++ Don't do in upgrade / migration sets
+
+#### 5 Test exceptions
++ Always test the right exception and the right message
++ Make sure no same exception happens before ours
+
+#### 6 Test permissions
++ Ensure users / groups have the right access level
++ **NEVER** use admin to test
+
+#### 7 Disable useless logging
++ Avoid clutter in test logs
++ Speed it up
+
+#### 8 Test onchanges and forms
++ `odoo.tests.common.Form`
++ No need to take care of collateral behaviors
+
+#### 9 Mocking (1): Odoo helper
++ TransactionCase.patch
++ Rolls back the patch on tearDown
++ Sort of not explicit patching and not suited for other test cases
+```
+    def setUp(self):
+        super(TransactionCase, self).setUp()
+        [...]
+        self.patch(type(self.env['res.partner']), '_get_gravatar_image', lambda *a: False)
+```
+
+#### 10 Mocking (2): built-in mock
++ Explicit
++ Context Manager
++ Decorator / multi patch per-test
++ Way more powerful
+
+#### 11 Mocking(3): date/time
++ `from freezegun import freeze_time`
++ Mock date/datetime/time/any time-related value
++ Used in Odoo core since v14 (!!!)
+```
+    @freeze_time("2020-09-15")
+    def test_eol(self):
+        self.product.end_of_life_date = "2020-09-04"
+        self.assertEqual(self.product.status, "endoflife")
+```
+
+#### 12 Mocking (4): request
++ `from odoo.addons.website.tools import MockRequest`
++ Mock `odoo.http.request` the right way
++ Limited override, manual hack need for setting headers and other params
+```
+    ctrl = InvaderControler()
+    with MockRequest(self.env) as request:
+        request['httprequest']['environ'] = {
+            "HTTP_PARTNER_EMAIL": params["email"]
+        }
+        request["auth_api_key_id"] = self.backend.auth_api_key_id.id
+        ctx = ctrl._get_component_context()
+```
+
+#### 13 Test Tags
++ `odoo.tests.common.tagged(*tags)`
++ odoo --test-enable --test-tags x,y,z
+
+#### 14 Avoid HttpCase when possible
++ Slow down tests a lot, broken w/ pytest
++ Mandatory only to test route registartion
++ Split tests
++ + Test routes
++ + Test controller behavior w/ MockRequest
++ Skip it always for pytest
+
+#### Run tests
++ Standard Odoo `$ odoo -d mydb --test-enable --stop-after-init -[i|u] my_module`
++ Pytest-odoo `$ pytest -s path/to/my_module`
++ Pytest-odoo `$ pytest -s path/to/my_module/test_feat1_`
+
+
+```
+class TestCommonCase(SavepointCase):                                                # 1
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # disable tracking test suite wise
+        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))     # 2
+        cls.user_model = cls.env['res.users'].with_context(no_reset_password=True)  # 3
+        cls.new_user = cls.user_model_create({"name": "John", "login": "john"})
+
+    def test_my_custom_error(self):                                                 # 5
+        with self.assertRaises(exceptions.UserError) as exc:
+            self.my_model.write({"a_field": "bad value!"})
+        self.assertEqual(exc.exception.name, "The value is wrong sir!")
+
+
+    @mute.logger(                                                                   # 7
+       'odoo.models', 'odoo.models.unlink', 'odoo.addons.base.ir.ir_model'
+    )
+
+    def test_user_can_do_it(self):                                                  # 6
+        vals = {...}
+        rec = self.my_model.sudo(self.user_manager).create(vals.copy())
+        self.assertTrue(rec)
+        with self.assertRaises(exceptions.AccessError):
+            self.my_model.sudo(self.user_simple).create(vals.copy())
+        with self.assertRaises(exceptions.AccessError):
+            rec.sudo(self.user_simple).unlink()
+```
+
+
+
+
+
+
+
+
+
+
