@@ -9,7 +9,9 @@
 + Model names must be **globally unique** as they are they key to accessing the model registry. Good practice to use the first word of the application as the first word in the models name as a **prefix**. Model Names should use the *singular form* library.book
 
 The `Book` model has the following relationships: (p189)
-+ Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity. 
++ Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity.
+
++ **Web Controllers** are the server side components responsible for when an Odoo web path is accessed, usually triggering the rendering of a web page. (p442)
 
 ## Table of Contents
 **Intro**
