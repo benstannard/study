@@ -7,6 +7,7 @@
 ## Things to remember
 + Odoo modles are kept in a *central registry*, available throught the environment object, which is usually accessed using `self.env`, `self.env["mymodel"]`
 + Model names must be **globally unique** as they are they key to accessing the model registry. Good practice to use the first word of the application as the first word in the models name as a **prefix**. Model Names should use the *singular form* library.book
++ Access privileges are granded to security groups, and users are assigned security groups. Access-secuirty-related files are kept in the `security/` module subdirectory. Security groups are organized in the same **categories** used for addon modules. `base.module_category_services_mymodule`. `manager` group will inherit from `user` privileges. Add the security definitions before the menu and view in `"data"` key in `__manifest__` (p86)
 
 The `Book` model has the following relationships: (p189)
 + Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity.
@@ -154,14 +155,16 @@ A app is expected to have the following:
 + A top-level menu item, under which all the app's menu items will be placed. These are view components added using XML data files
 + Security Groups for the app so it can be enabled for users that need it, and where access security will be set An icon, to be presented in the app list
 
+#### Adding a top menu item
+
+`<menuitem>` element is an instruction to write a record on teh `ir.ui.menu` model, where Odoo menu items are stored. The `id` attribute is also known as an **XML ID** and is used to uniquely identify each data element, providing a way for other elements to reference it. **submenu** added later will need to reference their parent menu item. Module does not know about this new XML files yet, needs to be added to `__manifest__.py`. To load these configurations into our Odoo database, we need to upgrade the module.
+
 ```
 # views/library_menu.xml
 <odoo>
     <menuitem id="menu_library" name="Library" />
 </odoo>
 ```
-
-`<menuitem>` element is an instruction to write a record on teh `ir.ui.menu` model, where Odoo menu items are stored. The `id` attribute is also known as an **XML ID** and is used to uniquely identify each data element, providing a way for other elements to reference it. **submenu** added later will need to reference their parent menu item. Module does not know about this new XML files yet, needs to be added to `__manifest__.py`. To load these configurations into our Odoo database, we need to upgrade the module.
 
 #### Adding security groups, kept in /security subdirectory
 
@@ -199,6 +202,8 @@ The Fundamental Principle of Unit Testing = **Verify that a known, fixed input p
 ### [OCA Days 2020 - Testing best practices, tips and tricks](https://www.youtube.com/watch?v=pQ7TZELSpKY)
 
 ```
+from odoo.tests.common import SavepointCase, TransactionCase, HttpCase
+
 class TestCommonCase(SavepointCase):                                                # 1
     @classmethod
     def setUpClass(cls):
@@ -230,12 +235,51 @@ class TestCommonCase(SavepointCase):                                            
 
 #### Base test classes
 + `odoo.tests.common.SingleTransactionCase`
-+ `odoo.tests.common.TrasactionCase` - most common,
-+ `odoo.tests.common.SavepointCase` -
-+ `odoo.tests.common.HttpCase` - only one you can test behavior of controller
++ `odoo.tests.common.TrasactionCase` - most common. Each method is run in its own transaction. The transaction cursor is not committed. setUp() test_method1() tearDown()
++ `odoo.tests.common.SavepointCase` - all methods are run in a single transaction. Each method is guarded by a savepoint (like a sub-transaction).
++ `odoo.tests.common.HttpCase` - only one you can test behavior of controller. Launches HTTP server, open any URL, run some JS in the Odoo client
+
+##### Available on the the above test instances
++ self.registry
++ self.cr - cursor on current transaction
++ self.uid - current user id
++ self.env - current environment, **most important part**
+
+##### Server-side form
++ A Python implementation of a form, reproduces what the client-side form does, create or edit a record just like a user would.a
+```
+move_form = Form(self.env['account.move'])
+move_form.partner_id = partner
+...
+with move_form.invoice_line_ids.new() as line_form:
+    line_form.product_id = product
+...
+invoice = move_form.save()
+```
+
+##### use `addCleanup()`
++ deallocate any resources used
+
+##### use `unittest.mock`
+```
+from unittest.mock import patch
+
+day = date(1979,5,4)
+with patch.object(fields.Date, 'today', lambda *args, **kwargs: day):
+    ...
+    assert fields.Date.today() == day
+    ...
+
+```
+
+##### Maximize coverage
++ Every corner case
++ Test with different users with different access rights
++ Test access errors
++ Test expected errors, shouldn't be able to deliver a product if something is not in stock
 
 #### 1 Use `SavepointCase`
-+ Suitable for the majority of our test cases
++ Suitable for the majority of our test cases, 95%
 + Use it always if no special setup is required
 + Setup records and variables only once at the setup
 + Speed
