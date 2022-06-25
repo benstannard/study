@@ -556,8 +556,9 @@ Web **controllers** are the components responsible for rendering web pages. A co
 ## Section 2: Models
 
 ### Understanding the external identifer concept
-An **external identifer**, also called **XML ID**
+An **external identifer**, also called **XML ID**, is a *human-readable string identifer* that uniquely identifies a particular record in Odoo. They are important for loading data into Odoo, allowing use to modify an existing data record or reference it in other data records.
 
+#### How external identifers work
 
 
 
