@@ -5,6 +5,7 @@
 + Odoo databases are incompatible between its major versions! The same is true for **addon modules**.
 
 ## Things to remember
++ ` odoo -u --upgrade --test-enable` `odoo` will look for tests/ subdirectory
 + Odoo modles are kept in a *central registry*, available throught the environment object, which is usually accessed using `self.env`, `self.env["mymodel"]`
 + Model names must be **globally unique** as they are they key to accessing the model registry. Good practice to use the first word of the application as the first word in the models name as a **prefix**. Model Names should use the *singular form* library.book
 + Access privileges are granded to security groups, and users are assigned security groups. Access-secuirty-related files are kept in the `security/` module subdirectory. Security groups are organized in the same **categories** used for addon modules. `base.module_category_services_mymodule`. `manager` group will inherit from `user` privileges. Add the security definitions before the menu and view in `"data"` key in `__manifest__` (p86)
@@ -13,6 +14,7 @@ The `Book` model has the following relationships: (p189)
 + Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity.
 
 + **Web Controllers** are the server side components responsible for when an Odoo web path is accessed, usually triggering the rendering of a web page. (p442)
+
 
 ## Table of Contents
 **Intro**
@@ -378,6 +380,67 @@ with patch.object(fields.Date, 'today', lambda *args, **kwargs: day):
 + Pytest-odoo `$ pytest -s path/to/my_module/test_feat1_`
 
 
+### Step 4 - Implementing the model layer **ORM**
+,w
+A **`model`** describes a list of **`fields`** and can also have specific business logic attached to it. Model data structure and attached business logic are described with Python code, using an object class derived from an Odoo template class. A **model maps to a database table** and the Odoo framework takes care of all the database interactions, both in keeping the database strucre in sync with the object and in translating all transactions to teh database instructions.
++ `_name` defines the **unique ID (UID)** that will be used throughout Odoo. Uses dot(.) to seperate keyworks, most others will use underscore
++ `name` and `active` are special field names, by default Odoo framework makes special use of them. `name` is used for the record display name and `active` is used to filter outinactive records from the UI
++ **many-to-one** in database jargon, a **foreign key (FK)**. The convention is for many-to-one field names to end with *_id*
++ **many-to-many** can store links to one or more records in another model, at DB level a helper table is automatically created to store the relations between records in the two tables. The convention is to end with *_ids*
+
+Place in `models/` directory in our module and:
+```
+# modules main __init__.py file
+from . import models
+
+# from models/ subdirectory __init__.py file
+from . import library_book
+
+# models/library_book.py
+from odoo import fields, models
+
+class Book(models.Model):                                   # The actual Python class name used is irrelevant for the Odoo framework
+    _name = "library.book"                                  # The model ID relevant for Odoo is the _name defines the **unique ID (UID)** that will used throughout Odoo to refer to this model. Model IDs use dots (.) to sepearte keywords
+    _description = "Book"
+
+    name = fields.Char("Title", required=True)              # used for the data record title
+    active = fields.Boolean ("Active?", default=True)       # used in UI to filter records
+    isbn = fields.Char("ISBN")
+    image = fields.Binary("Cover")
+    publisher_id = fields.Many2one("res.partner", string="Publisher")
+    author_ids = fields.Many2Many("res.partner", string="Author")
+
+    # special fields Odoo automatically adds to every model
+    id                  # unique numeric database ID for each record
+    create_date         # record creation timestamp
+    create_uid          # user who created the record
+    display_name        # textual representation for the record use
+    write_date          # records last modifcation timestamp
+    write_uid           # who modified
+    __last_update       # computed field not stored in the database used for concurreny checks
+
+
+
+```
+
+### Step 5 - Setting up access security
+
+We need to grant access rights to new models before we use them, also referred to as an **access control list** or **ACL**. They indicate for a security group, what kinds of actions are allowed on records: read, write, create, and delete.
++ `id` is the record's external ID (aka **XML ID**), should be unique in our model
++ `name` is a descriptive title. It is informative and it is recommended for it to be **unique**
++ `model_id` is the external ID for the model we are giving access too. Automatically generated by ORM; `library.book' will generate ID `model_library_book`.
++ `group_id` identifies the security group to give permissions to. We grant access to the secuirty groups created before:
++ `perm...` fields grant acces to the `read`, `write`, `create`, `unlink` operations. **1** for `yes/true' and **2** for `no/false`
+
+
+This data can be provided by a module data file, loading records into the `ir.model.access` model. The filename for CSV data files must match the model ID we are loading into.
+```
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_book_user,BookUser,model_library_book,library_group_user,1,1,1,0
+access_book_manager,BookManager,model_library_book,library_group_manager,1,1,1,1
+
+# don't forget to add this new file in the data key in __manifest__.py
+```
 
 
 

@@ -18,7 +18,7 @@ Code that...**verify that a known, fixed input produces a known, fixed output.**
 ### Write you tests first
 + It's not just about testing, it's about software development.
 + You start with the user rather than the used code.
-+ If you wrote tests before code it shouldn't be coupled with the code
++ If you wrote tests before code, it shouldn't be coupled with the code
 
 ### Why *Unit* Test
 + Unit means **One**. Each test tests exactly one thing.
@@ -57,7 +57,7 @@ Code that...**verify that a known, fixed input produces a known, fixed output.**
 ### Avoid Condition Logic in Tests
 + if/else and loops, should be seperate. Conditional logic may not run
 
-### Debuggin
+### Debugging
 + Write a failing test before you fix the bug. **Good idea**
 + If the test passes, the bug isn't what you think it is.
 + Prevents future bugs from re-entering in same code.
