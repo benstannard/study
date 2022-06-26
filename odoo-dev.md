@@ -11,6 +11,19 @@
 + Model names must be **globally unique** as they are they key to accessing the model registry. Good practice to use the first word of the application as the first word in the models name as a **prefix**. Model Names should use the *singular form* library.book
 + Access privileges are granded to security groups, and users are assigned security groups. Access-secuirty-related files are kept in the `security/` module subdirectory. Security groups are organized in the same **categories** used for addon modules. `base.module_category_services_mymodule`. `manager` group will inherit from `user` privileges. Add the security definitions before the menu and view in `"data"` key in `__manifest__` (p86)
 
+#### The `base` module provides two kinds of models:
+1. Information repository, `ir.*` models used to store basic data needed for Odoo framework such as Menu, Views, Models, and Actions
++ `ir.actions.act_window` for Window Actions
++ `ir.config_parameter` for global configuration options
++ `ir.ur.menu` for Menu Items
++ `ir.ui.view` for Views
++ `ir.model` for Models
++ `ir.model.fields ` for models fields
++ `ir.model.data` for XML Ids
+
+2. Resources, `res.*` models
+
+
 The `Book` model has the following relationships: (p189)
 + Each book can have one publisher, and each publisher can have many books. From the book's point of view, this is a *many-to-one relationship.* It is implemented in the db as an integer field, holding the ID of the related publisher record, and a database foreign key in it, enforcing referential integrity.
 

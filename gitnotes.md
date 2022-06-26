@@ -1,215 +1,192 @@
-# Git - [Pro Git](https://git-scm.com/book/en/v2)
+#### Sources
+[Pro Git](https://git-scm.com/book/en/v2)
+[website dangit.com](https://dangitgit.com/en)
 
-## Git Basics
+# Git Basics
+```
+git init
+git clone https://github.com/benstannard/study
+git commit -m "Story 182: fix benchmakr for speed"
+git commit --amend
 
-`git init`  
-`git clone https://github.com/benstannard/study`  
-`git commit -m "Story 182: fix benchmakr for speed"`  
-`git commit --amend`  
-
-`git log -p --patch`  
-`git log -p --submodule`  
-`git log --stat`  
-`git log --oneline --decorate`  
-`git log --graph`  
-`git log -n <limit> -10 --since=2.weeks --until`  
-`git show 5eba8a`  
+git log -p --patch
+git log -p --submodule
+git log --stat
+git log --oneline --decorate
+git log --graph
+git log -n <limit> -10 --since=2.weeks --until
+git show 5eba8a
+```
 
 ## Working with Remotes
-
 To be able to collaborate on any Git projects, you need to know how to manage your remote repositories. Remote repos are versions of your project that are hosted on the Internet or network somewhere. Collaborating with others involves managing these repos and pushing and pulling data to and from them when you need to share work.  
 
 We can use the shortname in lieu of the whole URL
-`git remote -v`  
-`git remote add <shortname> <url>`  
+```
+git remote -v
+git remote add <shortname> <url>
+```
 
-###### Fetching and Pulling from Your Remotes
+#### Fetching and Pulling from Your Remotes
+To get data from remote projects, run:
+```
+git fetch <remote>      # fetchs any new work that has been pushed to that servce since you cloned/fetched it
+git fetch               # only downloads the data to your local repo - you have to merge it mannuall into your work when you're ready
+git pull                # command automatically fetch and then merge that remote branch into your current branch
+git pull --rebase       # If you want to rebase when pulling: `git config --global pull.rebase "true"`
+```
 
-To get data from remote projects, run:  
-`git fetch <remote>` fetchs any new work that has been pushed to that servce since you cloned/fetched it.  
-`git fetch` only downloads the data to your local repo - you have to merge it mannuall into your work when you're ready.  
-`git pull` command automatically fetch and then merge that remote branch into your current branch.  
-If you want to rebase when pulling: `git config --global pull.rebase "true"`  
+#### Pushing to Your Remotes
+When you have your project at a point that you want to share, you have to push it **upstream**.
+```
+git push <remote> <branch>
+git push origin main
+```
 
-###### Pushing to Your Remotes
+#### Inspecting a Remote and Renaming
+If you want to see more information about a particulare remote, use `git remote show <remote>` commands
+```
+git remote show <remote>
+git remote show origin
 
-When you have your project at a point that you want to share, you have to push it **upstream**. The command is simple:  
-`git push origin main`
-
-###### Inspecting a Remote
-
-If you want to see more information about a particulare remote, use `git remote show <remote>` commands.  
-`git remote show <remote>`  
-`git remote show origin`  
-
-
-###### Renaming
-
-`git remote rename master main`  
-
-###### Tagging
-
-Listing the existing tags in Git is straightforward. Just type  
-`git tag`  
-`git tag -l --list`  
+git remote rename master main
+```
 
 ###### Creating Tags
-Git supports two types of tags: **lightweight**, light a branch that does change.  
-And **annotated**, stored as full objects in the Git database. They're checksummed; contain the tagger name, email, and date, and a tagging message; and be signed and verifed with GNU Privacy Guard (GPG). It is generally recommed that you create **annotated** tags.  
-`git tag -a v1.4 -m "my version 1.4"`  
-`git show v1.4`  
+Git supports two types of tags:
+1. **lightweight**, very much like a branch that doesn't change - it's just a pointer to a specific commit.
+2. **annotated**, stored as full objects in the Git database. They're checksummed; contain the tagger name, email, and date, and a tagging message; and be signed and verifed with GNU Privacy Guard (GPG). It is generally recommed that you create **annotated** tags.
+```
+# To list/view tags
+git tag
+git tag -l --list
+
+git tag -a v1.4 -m "my version 1.4"
+git show v1.4
+```
 
 ###### Tagging Later
-
-To tag a older commit, you specify the commit checksum at the end of the command:  
-`git tag -a v1.2 9fceb02`  
+To tag a older commit, you specify the commit checksum at the end of the command: `git tag -a v1.2 9fceb02`
 
 ###### Sharing Tags and Deleting
-
-By default, `git push` doesn't transfer tags to remote servers. You have to explicitly push tags to a shared server after you have created them.  
-`git push origin v1.5`  
-`git push origin --tags`  
-`git tag -d v1.4.1-w`  
+By default, `git push` doesn't transfer tags to remote servers. You have to explicitly push tags to a shared server after you have created them.
+```
+git push origin v1.5
+git push origin --tags
+git tag -d v1.4.1-w
+```
 
 ###### Checking out Tags
-
-If you need to make changes -- say fixing a bug on a older version - you will generally want to create a branch:  
-`git checkout -b version2 v2.0.0`  
-
+If you need to make changes -- say fixing a bug on a older version - you will generally want to create a branch: `git checkout -b version2 v2.0.0`
 
 ## Git Branching
-
-### Branches in a Nutshell
-
-A **branch** is simply a lightweight moveable pointer to one of these commits. Every time the you commit, the `main` brnach pointer moves forward automatically. **Branching** means you diverge from the main line of development and continue to do work without messing with that main line. Git encourages a workflow that **branches and merges often**, even multiple times in a day. How does Git know what branch you're currently on? It keeps a special pointer called **HEAD**.
+A **branch** is simply a lightweight moveable pointer to one of these commits. Every time the you commit, the `main` branch pointer moves forward automatically. **Branching** means you diverge from the main line of development and continue to do work without messing with that main line. Git encourages a workflow that **branches and merges often**, multiple times in a day. How does Git know what branch you're currently on? It keeps a special pointer called **HEAD**.  
 
 **fast-forward** no divergent work to merge together.  
 **merge commit** from a three way merge automattically create a new commit that points to it, it's special, has more than one parent commit.  
 
-#### Types of Branches
-
+#### Branch Management
 Older but good [article](https://longair.net/blog/2009/04/16/git-fetch-and-merge/)  
+Remote-tracking braches are references to the state of remote branches, think of them as bookmarks. `<remote>/<branch>` `origin/main`
+```
+git branch                          # simple listing of your current branches
+git branch -v                       # To see the last commit on each branch
+git branch --merged  --no-merged    # To see branches that have/haven't been merged
+git branch -r                       # remote-tracking branches
+git ls-remote <remote>
 
-`git branch` **local**  
-`git branch -r` **remote-tracking branches**  
-
-
-`git branch testing`  
-`git checkout testing`  
-`git checkout -b <newbranchname>`  
-`git branch -r ` *remote-tracking branches*  
-`git checkout -b serverfix origin/serverfix`  checkout branch based on remote-tracking branch.  
-
+git branch testing
+git checkout testing
+git checkout -b <newbranchname>
+git branch -r ` *remote-tracking branches*
+git checkout -b serverfix origin/serverfix`  checkout branch based on remote-tracking branch
+```
 
 ###### Basic Merging
-
-Your work is complete and ready to merged into `main` branch. Just checkout the branch you wish to merge into and run:  
-`git checkout main`  
-`git merge iss53`  
-`git branch -d iss53`  
+Your work is complete and ready to merged into `main` branch. Just checkout the branch you wish to merge into and run:
+```
+git checkout main
+git merge iss53
+git branch -d iss53
+```
 
 ###### Basic Merge Conflicts
-
-Git pauses the process while you resolve the conflict. Run:  
-`git status`  
-`git mergetool`  
-
-###### Branch Management
-
-Lets look at some branch-management tools that will come in handy when you being using branches all the time.  
-`git branch`  
-`git branch -v`  to see the last commit on each branch  
-`git branch --merged --no-merged`  filters this list to branches that you have or have not yet merged into the branch you're currently on.
+Git pauses the process while you resolve the conflict. Run:
+```
+git status
+git mergetool
+```
 
 ###### Changing a branch name
-
-`git branch --move <old-branch-name> <new-brance-name>`  
-`git push --set-upstream origin <new-branch-name>`  
-`git push origin --delete <old-branch-name>`  
-`git branch --move master main`  
-`git push --set-upstream origin main`  
-`git branch --all`  
-`git push origin --delete master`  
+```
+git branch --move <old-branch-name> <new-brance-name>
+git branch --move master main
+git push --set-upstream origin <new-branch-name>
+git push origin --delete <old-branch-name>
+git push --set-upstream origin main
+git branch --all
+git push origin --delete master
+```
 
 ###### Long-Running Branches
-
 `main` branch that entirely stable or code that has been or will be released.  
 `develop` branch in parallel that they work from or use to test stability - it isn't always stable, but when it gets to a stable state, it can be merged.  
 `iss53` or short-lived branches are merged into `develop` when they're ready and make sure they pass all tests and don't introduce bugs.  
 
-In reality, we're talking about pointers moving up the line of commits you're making.  
-The idea is that your branches are at various levels of stability; when they reach a more stable level, they're merged into the branch above.  
-
-###### Remote Branches
-
-Remote-tracking braches are references to the state of remote branches, think of them as bookmarks. `<remote>/<branch>` `origin/main`  
-`git ls-remote <remote>`
-
-**Local and remove work can diverge** to synchronize your work with a give remote, run:  
-`git fetch origin`  
+In reality, we're talking about pointers moving up the line of commits you're making. The idea is that your branches are at various levels of stability; when they reach a more stable level, they're merged into the branch above.
 
 ###### Pushing
-When you want to share a branch with the world, you need to push it up to a remote which you have write access.  
-
-`git push <remote> <branch>`  
-`git push origin serverfix` next time coworker runs `git fetch origin` from the server, they will see the new branch.  
-**To merge into your own current branch** run `git merge origin/serverfix`  
-**If you want your own serverfix branch to workon**, you can base it off remote-tracking branch:  
-`git checkout -b serverfix origin/serverfix`
+When you want to share a branch with the world, you need to push it up to a remote which you have write access.
+```
+git push <remote> <branch>
+git push origin serverfix       # next time coworker runs `git fetch origin` from the server, they will see the new branch.
+```
 
 ###### Tracking Branches
-
-Checking out a local branch from a remote-tracking branch automatically creates what is called a "tracking branch".  
-**Tracking branches** are local branches that have a direct relationship to a remote branch. If you're on a tracking branch and run  
-`git pull` Git automatically knows which server to fetch from and which branch to merge in.  
-`git checkout -b <branch> <remote>/<branch>`  
-`git checkout --track <remote>/<branch>`  
-`git checkout --track origin/serverfix`  
-`git branch -vv`  to see what tracking branches you have setup.  
-`git fetch --all; git branch -vv`  
+Checking out a local branch from a remote-tracking branch automatically creates what is called a "tracking branch". **Tracking branches** are local branches that have a direct relationship to a remote branch. If you're on a tracking branch and run:
+```
+git pull        # Git automatically knows which server to fetch from and which branch to merge in.
+git checkout -b <branch> <remote>/<branch>
+git checkout --track <remote>/<branch>
+git checkout --track origin/serverfix
+git branch -vv`  # to see what tracking branches you have setup
+git fetch --all; git branch -vv
+```
 
 ###### Pulling and Deleting Remote Branch
-
 `git pull` is essentially a `git fetch` immediately followed by a `git merge`.  
 Generally it's better to simply use the `fetch` and `merge` commands explicitly as magic of `git pull` can be confusing.  
 `git push origin --delete serverfix`  
 
 ## Rebasing
+In Git, there are two main ways to integrate changes from one branch into another:
+1. `merge` - performs a three-way merge.
+2. `rebase` - with **`rebase`** you take all the changes that were committed on one branch and replay them on a different branch. The operation goes to the common ancestor of the two branches, the one your on and the one you're rebasing onto, getting the diff, applying changes.  
 
-In Git, there are two main ways to integrate changes from one branch into another: the `merge` and the `rebase`.  
-`merge` command performs a three-way merge.  
-With **rebase** you take all the changes that were committed on one branch and replay them on a different branch. The operation goes to the common ancestor of the two branches, the one your on and the one you're rebasing onto, getting the diff, applying changes.  
-Rebasing makes for a cleaner history, it looks like a linear history, appears all teh work happend in series even though it was parallel.  
-It's only the history that's different.  
-Rebasing replays changes from one line of work onto antoher in teh order they were introduced.  
-Merging takes the endpoints and merges them together.
-`git checkout experiment`  
-`git rebase master`  
-
-**At this point, you can go back to the master branch ad do a fast-forward merge**
-`git checkout master`  
-`git merge experiment`  
-
-**Often** you'll do this ot make sure your commits apply cleanly on a remote branch, like contributing to a project you don't maintain.  
-In this case you work in a brance, then rebase your work onto `origin/main` when you're ready to submit your patches to the main project.  
-The maintainer doesn't haev to do any integration work - just a fast-forward or a clean apply.  
+Rebasing makes for a cleaner history, it looks like a linear history, appears all the work happend in series even though it was parallel. **It's only the history that's different**. Rebasing replays changes from one line of work onto antoher in the order they were introduced. Merging takes the endpoints and merges them together.
+```
+git checkout experiment
+git rebase master           # At this point, you can go back to the master branch ad do a fast-forward merge
+git checkout master
+git merge experiment
+```
+<br>
+**Often** you'll do this to make sure your commits apply cleanly on a remote branch, like contributing to a project you don't maintain. In this case you work in a branch, then rebase your work onto `origin/main` when you're ready to submit your patches to the main project. The maintainer doesn't have to do any integration work - just a fast-forward or a clean apply.
 
 ###### More Interestings Rebases
-
-`git rebase --onto master server client`  
-`git checkout master`  
-`git merge client`  
-`git rebase <basebranch> <topicbranch>`  
-`git rebase master server`  
-`git checkout master`  
-`git merge server`  
+```
+git rebase --onto master server client
+git checkout master
+git merge client
+git rebase <basebranch> <topicbranch>
+git rebase master server
+git checkout master
+git merge server
+```
 
 ###### Perils of Rebasing
-
-**Do not rebase commits that exist outside your repo and that people may have worked on**
-Only ever rebase commits that have never left your own computer, you'll be fine.  
-If you rebase commits that have been pushed, and people base work on those commits, you will find trouble.  
-Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.  
+**Do not rebase commits that exist outside your repo and that people may have worked on**.   
+Only ever rebase commits that have never left your own computer, you'll be fine. If you rebase commits that have been pushed, and people base work on those commits, you will find trouble. Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.
 
 ## [Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
