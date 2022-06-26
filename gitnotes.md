@@ -1,6 +1,6 @@
 #### Sources
-[Pro Git](https://git-scm.com/book/en/v2)
-[website dangit.com](https://dangitgit.com/en)
+[Pro Git](https://git-scm.com/book/en/v2)  
+[dangit.com](https://dangitgit.com/en)
 
 # Git Basics
 ```
@@ -52,7 +52,7 @@ git remote show origin
 git remote rename master main
 ```
 
-###### Creating Tags
+#### Creating Tags
 Git supports two types of tags:
 1. **lightweight**, very much like a branch that doesn't change - it's just a pointer to a specific commit.
 2. **annotated**, stored as full objects in the Git database. They're checksummed; contain the tagger name, email, and date, and a tagging message; and be signed and verifed with GNU Privacy Guard (GPG). It is generally recommed that you create **annotated** tags.
@@ -170,7 +170,6 @@ git rebase master           # At this point, you can go back to the master branc
 git checkout master
 git merge experiment
 ```
-<br>
 **Often** you'll do this to make sure your commits apply cleanly on a remote branch, like contributing to a project you don't maintain. In this case you work in a branch, then rebase your work onto `origin/main` when you're ready to submit your patches to the main project. The maintainer doesn't have to do any integration work - just a fast-forward or a clean apply.
 
 ###### More Interestings Rebases
@@ -185,11 +184,9 @@ git merge server
 ```
 
 ###### Perils of Rebasing
-**Do not rebase commits that exist outside your repo and that people may have worked on**.   
-Only ever rebase commits that have never left your own computer, you'll be fine. If you rebase commits that have been pushed, and people base work on those commits, you will find trouble. Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.
+**Do not rebase commits that exist outside your repo and that people may have worked on**. Only ever rebase commits that have never left your own computer, you'll be fine. If you rebase commits that have been pushed, and people base work on those commits, you will find trouble. Rebase local changes before pushing to clean up your work, but never rebase anything that you've pushed somewhere.
 
 ## [Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-
 **Submodules** allow you to keep a git repository as a subdirectory of another git repository. This lets you clone another repository into your project and keep your commits separate. Git submodules are simply a reference to another repository at a particular snapshot in time. Git submodules enable a Git repository to incorporate and track version history of external code, submodules are very static and only track specific commits. Submodules do not track git refs or branches and are not automatically updated when the host repository is updated.  
 
 Submodules will add the subproject into a directory named the same as the repository. A new .gitmodules file will be created that contains meta data about the mapping between the submodule project's URL and local directory.  
@@ -197,64 +194,46 @@ Submodules will add the subproject into a directory named the same as the reposi
 If often happens that while working on one project, you need to use another project from within it. Perhaps it's a library that a third party developed. A common issue arises in these scenarios: you want to be able to treat the two projects as seperate yet still be able to use one from within the other. Suppose you're creating Atom feeds. Instead of writing your own Atom-generating code, you decide to use a library. Instead of copying the source code into your project, which could make mergin upstream changes difficult, Git addresses this issue using `submodules`.  
 
 ###### Starting with Submodules
-
 `git submodule add <url>`  
 `git submodule add https://github.com/chaconic/DbConnector`  
 `git submodule update --init --recursive`  **use to be on the safe side**, grabs any new or nested submodules.  
 `git pull --recurse-submodules`  update with a `git pull`.  
 
 ###### Cloning a Project with Submodules
-
 When you clone a project, by default you get the directories that contain submodules, but none of the files within them yet:  
 `git clone <url>`  The *submodule* directory will be there, but you must run two commands:  
 `git submodule init`  to initalize your locone configuration file, and  
 `git submodule update`  to fetch all the data from that project and checkout the appropirate commit listed`  
 
-**as one command on git clone or after**
 `git clone --recurse-submodules <url>`  **AS ONE COMMAND ON git clone**  
 `git submodule update --init`  combine above steps to initalize, fetch, and checkout any nested submodules.  
 `git submodule update --init --recursive` foolproof command of above.  
 
 ###### Working on a Project with Submodules
-
 `git submodule update --remote` Git will go into your submodules and fetch and update for you. Git will by default try to update **all**.  
 
 ###### Pulling Upstream Changes from the Project Remote
-
 `git pull` does not **update* the submodules.   
 
-
-
-
-
-
-
-
+<br>
+<br>
+<br>
 
 ## 10.1 Git Internals - Plumbing and Porcelain [Objects, Tree, Commit]
-Git is fundamentally a content-addressable filesystem with a VCS user interface written on top of it.
-All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree.
-Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.
+Git is fundamentally a content-addressable filesystem with a VCS user interface written on top of it. All Git objects are stored the same way, just with different types – instead of the string blob, the header will begin with commit or tree. Also, although the blob content can be nearly anything, the commit and tree content are very specifically formatted.  
 
-You mostly use Git with 30 or so subcommands such as checkout, branch, remote, and so on.
-But because Git was initially a toolkit for a version control system rather than a full user-friendly VCS,
-it has a number of subcommands that do low-level work and were designed to be chained together UNIX-style or called from scripts.
-These commands are generally referred to as Git's "plumbing" commands, while the more user-friendly commands are called "porcelain" commands.
+You mostly use Git with 30 or so subcommands such as checkout, branch, remote, and so on. But because Git was initially a toolkit for a version control system rather than a full user-friendly VCS, it has a number of subcommands that do low-level work and were designed to be chained together UNIX-style or called from scripts. These commands are generally referred to as Git's "plumbing" commands, while the more user-friendly commands are called "porcelain" commands.  
 
-When you run git init in a new or existing directory, Git creates the .git directory, which is where almost everything that Git stores and manipulates is located.
-If you want to back up or clone your repository, copying this single directory elsewhere gives you nearly everything you need
+When you run git init in a new or existing directory, Git creates the .git directory, which is where almost everything that Git stores and manipulates is located. If you want to back up or clone your repository, copying this single directory elsewhere gives you nearly everything you need.
 
-###### Four Important parts in .git directory
-the HEAD
-index files (yet to be created)
-objects and refs directories.
-
+#### Four Important parts in .git directory
 These are the core parts of Git.
-the objects directory stores all the content for your database,
-the refs directory stores pointers into commit objects in that data (branches, tags, remotes and more),
-the HEAD file points to the branch you currently have checked out,
-and the index file is where Git stores your staging area information. You'll now look at each of these sections in detail to see how Git operates.
+1. the objects directory stores all the content for your database,
+2. the refs directory stores pointers into commit objects in that data (branches, tags, remotes and more),
+3. the HEAD file points to the branch you currently have checked out,
+4. and the index file is where Git stores your staging area information. You'll now look at each of these sections in detail to see how Git operates.
 
+```
 $ ls -F1
 config		## project specific configuration
 description	## only used by GitWeb
@@ -263,9 +242,9 @@ hooks/
 info/		## keep a global exclude pattern for ignored patterns in .gitignore
 objects/
 refs/
+```
 
-
-###### Git Objects  $ find .git/objects
+#### Git Objects  $ find .git/objects
 Git is a content-addressable filesystem. Great. What does that mean?
 It means that at the core of Git is a simple key-value data store.
 You can insert any kind of content into a Git repository, for which Git will hand you back a unique key you can use later to retrieve that content.
