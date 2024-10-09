@@ -1,8 +1,8 @@
 # Kubernetes K8
 
 * Concepts
-[API Conventions](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md)
-[Read the Kubectl book](https://kubectl.docs.kubernetes.io/)
+[[https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md][API Conventions]]
+[[https://kubectl.docs.kubernetes.io/][Kubectl Book]]
 - Controller: A control loop that watches the shared state of the cluster through apiserver and makes changes attempting to move the current state towards the desired state.
 - Pod: A set of running containers in your cluster
 - ReplicaSets: Ensure that a specified number of Pod replicas are running at one time
@@ -218,6 +218,32 @@ At its core, a volume is a directroy, possbily with some data in it, which is ac
 - Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany, ReadWriteMany, or ReadWriteOncePod, see AccessModes).
 
 * Configuration
+** Best Practices
+[[https://kubernetes.io/docs/concepts/configuration/overview/][General Configuration Tips]]
+- When defining configurations, specify the latest stable API version.
+- Configuration files should be stored in version control before being pushed to the cluster. This allows you to quickly roll back a configuration change if necessary. It also aids cluster re-creation and restoration.
+- Write your configuration files using YAML rather than JSON. Though these formats can be used interchangeably in almost all scenarios, YAML tends to be more user-friendly.
+- Group related objects into a single file whenever it makes sense. One file is often easier to manage than several. See the guestbook-all-in-one.yaml file as an example of this syntax.
+- Note also that many kubectl commands can be called on a directory. For example, you can call kubectl apply on a directory of config files.
+- Don't specify default values unnecessarily: simple, minimal configuration will make errors less likely.
+- Put object descriptions in annotations, to allow better introspection.
+
+** ConfigMaps
+A ConfigMap is an API object used to store non-confidential data in key-value pairs.
+- Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+- A ConfigMap allows you to decouple environment-specific configuration from your container images, so that your applications are easily portable.
+
+** Secrets
+A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key.
+Such information might otherwise be put in a Pod specification or in a container image.
+Using a Secret means that you don't need to include confidential data in your application code.
+
+Because Secrets can be created independently of the Pods that use them, there is less risk of the Secret (and its data) being exposed during the workflow of creating, viewing, and editing Pods.
+Kubernetes, and applications that run in your cluster, can also take additional precautions with Secrets, such as avoiding writing sensitive data to nonvolatile storage.
+Secrets are similar to ConfigMaps but are specifically intended to hold confidential data.
+
+[[https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#define-container-environment-variables-using-secret-data][Define a secret]]
+
 * Security
 * Policies
 * Scheduling, Preemption and Eviction
