@@ -1,0 +1,225 @@
+# Kubernetes K8
+
+* Concepts
+[API Conventions](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md)
+[Read the Kubectl book](https://kubectl.docs.kubernetes.io/)
+- Controller: A control loop that watches the shared state of the cluster through apiserver and makes changes attempting to move the current state towards the desired state.
+- Pod: A set of running containers in your cluster
+- ReplicaSets: Ensure that a specified number of Pod replicas are running at one time
+* Objects
+** Objects in K8 Overview
+- Kubernetes objects are persistent entities in Kube, Kube uses these entites to represent the state of your cluster
+  - What containerized apps are running
+  - The resources available to those applications
+  - The policies around how those applications behave, such as restart policies, upgrades, fault-tolerance
+- Once you create, Kube system will constantly work to ensure that he object exists, this is your clusters desired state
+- Use kubectl to work with objects (create, modify, delete)
+*** Object spec and status
+- Almost every k8 object includes two nested object fields that govern configuration, **spec** and **status**
+- spec: you have to set this when you create the object, providing a description of the resources you want it to have: **desired state**
+- status: describes the current state
+- **control plane** continually and actiely manages every objects actual state to match the desired state you supplied
+*** Describing a Kubernetes object
+- When you create an object in Kube, you must provide the object spec that describes its desired state with other basic info, name.
+- API must be JSON or in a manifest in YAML. kubectl converts manifest into JSON
+- **Required fields**  [Config Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
+  - apiVersion, kind, metadata, name, spec
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+```
+- kubectl apply -f ....deployment.yaml
+- kubectl --validate detects unrecognized or duplicate fields in an object (strict, warn, ignore)
+** K8 Object Management
+- kubectl supports different ways to create and manage Kubernetes objects. K8 objects should be managed consistently.
+*** Imperative Commonds
+A user operates directly on live objects in a cluster using kubectl
+kubectl create deployment nginx --image nginx
+*** Imperative Object Configuration
+- Use a file
+kubectl create -f nginx.yaml
+kubectl replace -f nginx.yaml // update, overwrite
+kubectl delete -f nginx.yaml -f redis.yaml
+*** Decalarative Object Configuration
+- Process all configurationfiles in a configs direcory and create or patch the live objects
+- You can first diff to see what changes are going to be made then apply:
+kubectl diff -f configs/
+kubectl apply -f configs/
+kubectl diff -R -f configs/
+kubectl apply -R -f configs/
+** Object Names and IDs
+- Each object in your cluster has a Name that is unique for that type of resource and UID that is unique across your whole cluster
+- Within the same namespace, you can only have 1 Pod named myapp-1234 but can have a dupe name in a Deployment object
+- For non-unique user-procided attributes, K8 provides labels and annotations
+*** Names & UIDs
+- Name: A client-provided string that refers to an object in a resource URL, such as /api/v1/pods/some-name
+- UIDs: A Kubernetes systems-generated string to uniquely identify objects
+  - Every object created over the whole lifetime of a Kubernetes cluster has a distinct UID.
+  - It is intended to distinguish between historical occurrences of similar entities.
+  - Kubernetes UIDs are universally unique identifiers (also known as UUIDs).
+  - UUIDs are standardized as ISO/IEC 9834-8 and as ITU-T X.667.
+
+** Labels and Selectors
+[recommended Labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/)
+- Labels are key/value pairs that are attached to objects like pods
+- Labels can be used to organize and to select subsets of objects
+- Labels allow for efficient queries and watches and are ideal for use in UIs and CLIs.
+- Non-identifying information should be recorded using annotations.
+
+** Namespaces
+- Mechanism for isolating groups of resources within a single cluster
+- Names of resources need to be unique wihtin a namespace, but not across namespaces
+- Names cannot be nested and each k8 resource can only be in one namespace
+- Built in Namespaces: default, kube-node-lease, kube-public, kube-system
+** Annotations (skipped)
+** Field Selectors
+- Field Selectors let you select K8 resources based on the value of one or more resources selected
+metadata.name=my-service
+kubectl get pods --field-selector status.phase=Running
+
+* Cluster Architecture
+** Nodes (worker machine in Kubernetes)
+- k8 runs your workload (application running on k8) by placing containers into Pods to run on Nodes
+- Each node (vitrual or physical) is managed by the control plane and contains the services necessary to run the Pods
+- The components on a node include:
+  - kubelet, container runtime, kube-proxy
+kubectl describe node <insert-node-name-here>
+** Communication between Nodes and the Control Plane
+** Controllers
+- In robotics and automation, a **control loop** is a non-terminatin loop that regulated the state of the system.
+- Example: thermostat in room, when you set the temperature, you are telling the thermostat about your desired state
+- The actual room temperature is the current state. The thermostat acts to bring the current state closer to the desired state by turning equipment on or off
+- In K8s, controllers are the control loop that watch the state of your cluster then make or request changes where needed
+- Each controller tries to move the current cluster state closer to the desired state
+*** Controller Pattern
+- A controller tracks at least one Kubernetes resource type.
+- These objects have a spec field that represents the desired state.
+- The controller(s) for that resource are responsible for making the current state come closer to that desired state.
+- The controller might carry the action out itself; more commonly, in Kubernetes, a controller will send messages to the API server that have useful side effects. You'll see examples of this below.
+** Leases
+- Distributed systems often have a need for leases, which provide a mechanism to lock shared resources and coordinate activity between members of a set.
+- In Kubernetes, the lease concept is represented by Lease objects in the coordination.k8s.io API Group, which are used for system-critical capabilities such as node heartbeats and component-level leader election.
+
+** Cloud Controller Manager
+** cgroup v2
+** Container Runtime Interface (CRI)
+** Garabage Collection
+** Mixed Version Proxy
+* Containers (pod represents a set of running containers)
+- Technology for packaging an application along with it runtime dependencies
+- Each container that you run is repeatable; the standardization from having dependencies included means that you get the same behavior wherever you run it.
+- Containers decouple applications from the underlying host infrastructure. This makes deployment easier in different cloud or OS environments.
+- Each node in a Kubernetes cluster runs the containers that form the Pods assigned to that node.
+- Containers in a Pod are co-located and co-scheduled to run on the same node.
+- A container image is a ready-to-run software package containing everything needed to run an application: the code and any runtime it requires, application and system libraries, and default values for any essential settings.
+- Containers are intended to be stateless and immutable: you should not change the code of a container that is already running.
+- If you have a containerized application and want to make changes, the correct process is to build a new image that includes the change, then recreate the container to start from the updated image.
+* Workloads (a application running on k8s)
+- Use workload resources that manage a set of pods on your behalf - built in workload resources
+  - Deployment and ReplicaSet
+  - StatefulSet and PersistentVolume
+  - DaemonSet
+  - Job and Cronjob
+- A workload is an application running on Kubernetes.
+- Whether your workload is a single component or several that work together, on Kubernetes you run it inside a set of pods.
+- In Kubernetes, a Pod represents a set of running containers on your cluster.
+** Pods
+- Pods are the smallest deployable units of computing that you can create and manage in Kubernetes.
+- A Pod (as in a pod of whales or pea pod) is a group of one or more containers, with shared storage and network resources, and a specification for how to run the containers.
+- A Pod's contents are always co-located and co-scheduled, and run in a shared context.
+- A Pod models an application-specific "logical host": it contains one or more application containers which are relatively tightly coupled. In non-cloud contexts, applications executed on the same physical or virtual machine are analogous to cloud applications executed on the same logical host.
+- As well as application containers, a Pod can contain init containers that run during Pod startup.
+- You can also inject ephemeral containers for debugging a running Pod.
+
+
+** Deployments
+[Writing a Deployment Spec](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec)
+- Deployment manages a set of Pods to run an application workload, usually one that doesn't maintain state.
+- A Deployment provides declarative updates for Pods and ReplicaSets
+- You describe a desired state in a Deployment and a Deployment Controller changes the actual state to the desired state at a controlled rate
+- Use Cases: Create a Deployment to rollout a ReplicaSet, Declare the new state of the Pods, Rollback to an earlier Deplooyment Revision
+  Scale up the Deployment to facilitate more load, ...
+kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
+
+** ReplicaSet
+- A ReplicaSet's purpose is to maintain a stable set of replica Pods running at any given time.
+- Usually, you define a Deployment and let that Deployment manage ReplicaSets automatically.
+- As such, it is often used to guarantee the availability of a specified number of identical Pods.
+
+
+** StatefulSet
+
+** DaemonSet
+
+* Services, Load Balancing, and Networking
+The k8s network model
+- Each pod in a cluster gets its own unique cluser-wide IP address
+- A pod network handles communication between pods
+- A Service API lets your provide long lived IP address or hostname for a service implemented by one or more backened pods
+- Gateway API allows you to make Services accessible to clients outside the cluster
+** Service
+Expose an application running in your cluster behind a single outward-facing endpoint. Helps you expose groups of Pods over a network
+- in k8s, a Service is a method for exposing a network application that is running as one or more Pods in your cluster
+- Key Aim of Services: you don't need to modify your existing application to use unfamiliar service discovery mechanism
+- Allows Frontend to connect/use Backend without have to track IPs since Pods are ephemeral
+- The Service abstracts enables decoupling, frontend clients should not be aware of backend changes.
+- If your workload speaks HTTP, you might chose to use an Ingress to control how web traffic reaches that workload
+- The set of Pods targeted by a Service is usually determined by a selector that you define
+
+** Ingress (is frozen, new features are being added to Gateway API)
+Make your HTTP (or HTTPS) network service available using a protocol-aware configuration mechanism, that understands web concepts like URIs, hostnames, paths, and more.
+The Ingress concept lets you map traffic to different backends based on rules you define via the Kubernetes API.
+
+** Gateway API
+Gateway API is a family of API kinds that provide dynamic infrastructure provisioning and advanced traffic routing.
+HTTPRoute
+
+* Storage (ways to provide both long-term and temporary storage to Pods in your cluster)
+** Volumes
+The Kubernetes volume abstraction solves the below problems, Persistent Volumnes exist beyond the lifetime of a pod
+- On-disk files in a container are ephemeral, which presents some problems for non-trivial applications when running in containers.
+- One problem occurs when a container crashes or is stopped.
+- Container state is not saved so all of the files that were created or modified during the lifetime of the container are lost.
+- During a crash, kubelet restarts the container with a clean state.
+- Another problem occurs when multiple containers are running in a Pod and need to share files.
+- It can be challenging to setup and access a shared filesystem across all of the containers.
+
+At its core, a volume is a directroy, possbily with some data in it, which is accessible to the container in the a pod.
+
+** Persistent Volumes
+- Managing storage is a distinct problem from managing compute instances.
+- The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed.
+- To do this, we introduce two new API resources: PersistentVolume and PersistentVolumeClaim.
+- A PersistentVolume (PV) is a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using Storage Classes.
+- It is a resource in the cluster just like a node is a cluster resource. PVs are volume plugins like Volumes, but have a lifecycle independent of any individual Pod that uses the PV.
+- This API object captures the details of the implementation of the storage, be that NFS, iSCSI, or a cloud-provider-specific storage system.
+
+- A PersistentVolumeClaim (PVC) is a request for storage by a user.
+- It is similar to a Pod. Pods consume node resources and PVCs consume PV resources.
+- Pods can request specific levels of resources (CPU and Memory).
+- Claims can request specific size and access modes (e.g., they can be mounted ReadWriteOnce, ReadOnlyMany, ReadWriteMany, or ReadWriteOncePod, see AccessModes).
+
+* Configuration
+* Security
+* Policies
+* Scheduling, Preemption and Eviction
+* Clutser Admin
+
